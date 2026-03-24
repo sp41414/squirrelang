@@ -32,5 +32,10 @@ java {
 
 application {
     // Define the main class for the application.
-    mainClass = "org.example.App"
+    mainClass = "org.squirrelang.Squirrelang"
+}
+
+tasks.named<JavaExec>("run") {
+    standardInput = System.`in`
+    workingDir = projectDir
 }
