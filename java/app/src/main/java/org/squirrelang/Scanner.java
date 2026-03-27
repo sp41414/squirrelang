@@ -131,7 +131,7 @@ class Scanner {
         addToken(XOR);
         break;
       case '~':
-        addToken(NOT);
+        addToken(TILDE);
         break;
       case '!':
         addToken(match('=') ? BANG_EQUAL : BANG);

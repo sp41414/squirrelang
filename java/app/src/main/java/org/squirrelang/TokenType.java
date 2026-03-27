@@ -30,7 +30,7 @@ enum TokenType {
   AND,
   OR,
   XOR,
-  NOT,
+  TILDE,
   SHIFT_LEFT,
   SHIFT_RIGHT,
 

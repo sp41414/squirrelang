@@ -1,3 +1,5 @@
+This is the Java implementation for the language, as a Tree-Walk interpreter
+
 # Build Instructions
 
 ## Prerequisites
@@ -8,7 +10,7 @@
 ./gradlew build
 ```
 
-The compiled binary can be found at `app/bin/main/org/squirrelang/Squirrelang.class`.
+The compiled class can be found at `app/bin/main/org/squirrelang/Squirrelang.class`.
 
 ## Running
 ```bash
