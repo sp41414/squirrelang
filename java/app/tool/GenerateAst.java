@@ -28,12 +28,15 @@ public class GenerateAst {
         // fileWriter.println("import java.util.List;");
         // fileWriter.println();
         fileWriter.println("abstract class " + baseName + "{ ");
+        defineVisitor(fileWriter, baseName, types);
         for (String type : types) {
             String className = type.split(":")[0].trim();
             String fields = type.split(":")[1].trim();
 
             defineTypes(baseName, fileWriter, className, fields);
         }
+        fileWriter.println();
+        fileWriter.println("  abstract <R> R accept(Visitor<R> visitor);");
         fileWriter.println("}");
         fileWriter.close();
     }
@@ -52,8 +55,25 @@ public class GenerateAst {
         fileWriter.println("    }");
 
         fileWriter.println();
+        fileWriter.println("    @Override");
+        fileWriter.println("    <R> R accept(Visitor<R> visitor) {");
+        fileWriter.println("      return visitor.visit" +
+            className + baseName + "(this);");
+        fileWriter.println("    }");
+
+        fileWriter.println();
         for (String field : fieldList) {
             fileWriter.println("    final " + field + ";");
+        }
+        fileWriter.println("  }");
+    }
+
+    private static void defineVisitor(PrintWriter fileWriter, String baseName, List<String> types) {
+        fileWriter.println("  interface Visitor<R> {");
+        for (String type : types) {
+            String typeName = type.split(":")[0].trim();
+            // e.g. R visitBinaryExpr(Binary expr)
+            fileWriter.println("    R visit" + typeName + baseName + "(" + typeName + " " + baseName.toLowerCase() + ");");
         }
         fileWriter.println("  }");
     }
