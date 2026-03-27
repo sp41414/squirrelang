@@ -5,10 +5,12 @@ import static org.squirrelang.TokenType.*;
 
 /**
  * Parses a flat list of tokens into an expression tree using recursive descent.
- * Operator precedence (low to high): equality, comparison, term, factor, unary, primary.
+ * Operator precedence (low to high): equality, bitwise, comparison, term,
+ * factor, unary, primary.
  */
 public class Parser {
-    private static class ParseError extends RuntimeException {}
+    private static class ParseError extends RuntimeException {
+    }
 
     private final List<Token> tokens;
     private int current = 0;
@@ -26,7 +28,40 @@ public class Parser {
     }
 
     private Expr expression() {
-        return equality();
+        return bitwiseOr();
+    }
+
+    private Expr bitwiseOr() {
+        Expr expr = bitwiseXor();
+        while (match(OR)) {
+            Token operator = previous();
+            Expr right = bitwiseXor();
+            expr = new Expr.Binary(expr, operator, right);
+        }
+
+        return expr;
+    }
+
+    private Expr bitwiseXor() {
+        Expr expr = bitwiseAnd();
+        while (match(XOR)) {
+            Token operator = previous();
+            Expr right = bitwiseAnd();
+            expr = new Expr.Binary(expr, operator, right);
+        }
+
+        return expr;
+    }
+
+    private Expr bitwiseAnd() {
+        Expr expr = equality();
+        while (match(AND)) {
+            Token operator = previous();
+            Expr right = equality();
+            expr = new Expr.Binary(expr, operator, right);
+        }
+
+        return expr;
     }
 
     private Expr equality() {
@@ -51,12 +86,14 @@ public class Parser {
     }
 
     private boolean check(TokenType type) {
-        if (isAtEnd()) return false;
+        if (isAtEnd())
+            return false;
         return peek().type == type;
     }
 
     private Token advance() {
-        if (!isAtEnd()) current++;
+        if (!isAtEnd())
+            current++;
         return previous();
     }
 
@@ -119,10 +156,14 @@ public class Parser {
     }
 
     private Expr primary() {
-        if (match(NUMBER, STRING)) return new Expr.Literal(previous().literal);
-        if (match(TRUE)) return new Expr.Literal(TRUE);
-        if (match(FALSE)) return new Expr.Literal(FALSE);
-        if (match(NIL)) return new Expr.Literal(NIL);
+        if (match(NUMBER, STRING))
+            return new Expr.Literal(previous().literal);
+        if (match(TRUE))
+            return new Expr.Literal(TRUE);
+        if (match(FALSE))
+            return new Expr.Literal(FALSE);
+        if (match(NIL))
+            return new Expr.Literal(NIL);
 
         if (match(LEFT_PAREN)) {
             Expr expr = expression();
@@ -134,7 +175,8 @@ public class Parser {
     }
 
     private Token consume(TokenType type, String errorMessage) {
-        if (check(type)) return advance();
+        if (check(type))
+            return advance();
 
         throw error(peek(), errorMessage);
     }
@@ -151,7 +193,8 @@ public class Parser {
         advance();
 
         while (!isAtEnd()) {
-            if (previous().type == SEMICOLON) return;
+            if (previous().type == SEMICOLON)
+                return;
 
             switch (peek().type) {
                 case CLASS:
@@ -162,7 +205,7 @@ public class Parser {
                 case WHILE:
                 case PRINT:
                 case RETURN:
-                return;
+                    return;
             }
             advance();
         }

@@ -29,6 +29,7 @@ public class Squirrelang {
 
   /**
    * Interprets a file passed in.
+   * 
    * @param pathName
    * @throws IOException
    */
@@ -36,21 +37,24 @@ public class Squirrelang {
     fileName = pathName.substring(pathName.lastIndexOf("/") + 1);
     source = new String(Files.readAllBytes(Paths.get(pathName)), Charset.defaultCharset());
     run(source);
-    if (hadError) System.exit(65);
+    if (hadError)
+      System.exit(65);
   }
 
   /**
    * A REPL prompt that interprets as it comes in stdin.
+   * 
    * @throws IOException
    */
   private static void runPrompt() throws IOException {
     InputStreamReader input = new InputStreamReader(System.in);
     BufferedReader reader = new BufferedReader(input);
 
-    for (; ; ) {
+    for (;;) {
       System.out.print("> ");
       source = reader.readLine();
-      if (source == null) break;
+      if (source == null)
+        break;
       run(source);
       hadError = false;
     }
@@ -58,6 +62,7 @@ public class Squirrelang {
 
   /**
    * Scans, parses and interprets source code.
+   * 
    * @param source
    */
   private static void run(String source) {
@@ -67,7 +72,8 @@ public class Squirrelang {
     Parser parser = new Parser(tokens);
     Expr expression = parser.parse();
 
-    if (hadError) return;
+    if (hadError || expression == null)
+      return;
 
     System.out.println(new AstPrinter().print(expression));
   }
@@ -75,8 +81,9 @@ public class Squirrelang {
   /**
    * Reports an error in format:
    * error: message
-   *   --> file:line:col
-   *    |
+   * --> file:line:col
+   * |
+   * 
    * @param line
    * @param message
    */
@@ -87,10 +94,11 @@ public class Squirrelang {
   /**
    * Reports an error in format:
    * error: message
-   *   --> file:line:col
-   *   |
+   * --> file:line:col
+   * |
    * l | token lexeme
-   *     ^^^^^
+   * ^^^^^
+   * 
    * @param token
    * @param message
    */
@@ -104,6 +112,7 @@ public class Squirrelang {
 
   /**
    * Formats and prints errors to stderr Rust-style.
+   * 
    * @param line
    * @param where
    * @param message
@@ -116,7 +125,8 @@ public class Squirrelang {
     System.err.println(BLUE + pad + " --> " + RESET + fileName + ":" + line + ":" + column);
     System.err.println(BLUE + pad + " |" + RESET);
     System.err.println(BLUE + line + " | " + RESET + sourceLine);
-    System.err.println(BLUE + pad + " | " + RESET + " ".repeat(column - 1) + RED + "^".repeat(where == null || where.isEmpty() ? 1 : where.length()) + RESET);
+    System.err.println(BLUE + pad + " | " + RESET + " ".repeat(column - 1) + RED
+        + "^".repeat(where == null || where.isEmpty() ? 1 : where.length()) + RESET);
   }
 
   private static String getLine(int line) {
@@ -125,7 +135,8 @@ public class Squirrelang {
 
     for (int i = 0; i < source.length(); i++) {
       if (source.charAt(i) == '\n') {
-        if (currLine == line) return source.substring(start, i);
+        if (currLine == line)
+          return source.substring(start, i);
         currLine++;
         start = i + 1;
       }
