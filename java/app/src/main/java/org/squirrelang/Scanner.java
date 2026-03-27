@@ -14,6 +14,8 @@ class Scanner {
   private int start = 0;
   private int current = 0;
   private int line = 1;
+  private int column = 1;
+  private int columnStart = 1;
   private int multiLineCommentDepth = 0;
 
   static {
@@ -46,10 +48,11 @@ class Scanner {
   List<Token> scanTokens() {
     while (!isAtEnd()) {
       start = current;
+      columnStart = column;
       scanToken();
     }
 
-    tokens.add(new Token(TokenType.EOF, "", null, line));
+    tokens.add(new Token(TokenType.EOF, "", null, line, column));
     return tokens;
   }
 
@@ -66,16 +69,8 @@ class Scanner {
    * @return
    */
   private char advance() {
+    column++;
     return source.charAt(current++);
-  }
-
-  /**
-   * Add a token without literal value such as
-   * numbers, strings, or booleans.
-   * @param type
-   */
-  private void addToken(TokenType type) {
-    addToken(type, null);
   }
 
   /**
@@ -95,6 +90,7 @@ class Scanner {
   private boolean match(char expected) {
     if (isAtEnd()) return false;
     if (source.charAt(current) != expected) return false;
+    column++;
     current++;
     return true;
   }
@@ -138,13 +134,22 @@ class Scanner {
   }
 
   /**
+   * Add a token without literal value such as
+   * numbers, strings, or booleans.
+   * @param type
+   */
+  private void addToken(TokenType type) {
+    addToken(type, null);
+  }
+
+  /**
    * Creates a token for the current lexeme and adds it to the list.
    * @param type e.g. NUMBER, or STRING
    * @param literal The value, e.g. 12.3, "Hello, World"
    */
   private void addToken(TokenType type, Object literal) {
     String text = source.substring(start, current);
-    tokens.add(new Token(type, text, literal, line));
+    tokens.add(new Token(type, text, literal, line, columnStart));
   }
 
   /**
@@ -239,6 +244,7 @@ class Scanner {
         break;
       case '\n':
         line++;
+        column = 1;
         break;
       case '"':
         string();
@@ -254,7 +260,7 @@ class Scanner {
         } else if (isAlpha(c)) {
           identifier();
         } else {
-          Squirrelang.error(line, "Unexpected character: " + c);
+          Squirrelang.error(line, column, "Unexpected character: " + c);
         }
     }
   }
@@ -266,11 +272,14 @@ class Scanner {
   private void multiLineComment() {
     while (multiLineCommentDepth != 0) {
       if (isAtEnd()) {
-        Squirrelang.error(line, "Unterminated multi-line comment.");
+        Squirrelang.error(line, column, "Unterminated multi-line comment.");
         return;
       }
 
-      if (peek() == '\n') line++;
+      if (peek() == '\n') {
+        line++;
+        column = 1;
+      }
 
       if (peek() == '*' && peekNext() == '/') {
         multiLineCommentDepth--;
@@ -289,12 +298,15 @@ class Scanner {
    */
   private void string() {
     while (!isAtEnd() && peek() != '"') {
-      if (peek() == '\n') line++;
+      if (peek() == '\n') {
+        line++;
+        column = 1;
+      }
       advance();
     }
 
     if (isAtEnd()) {
-      Squirrelang.error(line, "Unterminated string.");
+      Squirrelang.error(line, column, "Unterminated string.");
       return;
     }
 

@@ -14,6 +14,7 @@ public class Squirrelang {
   private static final String BLUE = "\033[1;34m";
   static boolean hadError = false;
   static String fileName = "<stdin>";
+  static String source = "";
 
   public static void main(String[] args) throws IOException {
     if (args.length > 1) {
@@ -33,8 +34,8 @@ public class Squirrelang {
    */
   private static void runFile(String pathName) throws IOException {
     fileName = pathName.substring(pathName.lastIndexOf("/") + 1);
-    byte[] bytes = Files.readAllBytes(Paths.get(pathName));
-    run(new String(bytes, Charset.defaultCharset()));
+    source = new String(Files.readAllBytes(Paths.get(pathName)), Charset.defaultCharset());
+    run(source);
     if (hadError) System.exit(65);
   }
 
@@ -48,9 +49,9 @@ public class Squirrelang {
 
     for (; ; ) {
       System.out.print("> ");
-      String line = reader.readLine();
-      if (line == null) break;
-      run(line);
+      source = reader.readLine();
+      if (source == null) break;
+      run(source);
       hadError = false;
     }
   }
@@ -74,29 +75,30 @@ public class Squirrelang {
   /**
    * Reports an error in format:
    * error: message
-   *   --> file:line
+   *   --> file:line:col
    *    |
    * @param line
    * @param message
    */
-  static void error(int line, String message) {
-    report(line, "", message);
+  static void error(int line, int column, String message) {
+    report(line, column, "", message);
   }
 
   /**
    * Reports an error in format:
    * error: message
-   *   --> file:line
+   *   --> file:line:col
    *   |
    * l | token lexeme
+   *     ^^^^^
    * @param token
    * @param message
    */
   static void error(Token token, String message) {
     if (token.type == TokenType.EOF) {
-      report(token.line, null, message);
+      report(token.line, 0, null, message);
     } else {
-      report(token.line, token.lexeme, message);
+      report(token.line, token.column, token.lexeme, message);
     }
   }
 
@@ -106,13 +108,29 @@ public class Squirrelang {
    * @param where
    * @param message
    */
-  private static void report(int line, String where, String message) {
+  private static void report(int line, int column, String where, String message) {
     String pad = " ".repeat(String.valueOf(line).length());
+    String sourceLine = getLine(line);
+
     System.err.println(RED + "error" + RESET + ": " + message);
-    System.err.println(BLUE + pad + " --> " + RESET + fileName + ":" + line);
-    System.err.println(BLUE + pad + "  |" + RESET);
-    if (where != null && !where.isEmpty()) {
-      System.err.println(BLUE + line + "  | " + RESET + where);
+    System.err.println(BLUE + pad + " --> " + RESET + fileName + ":" + line + ":" + column);
+    System.err.println(BLUE + pad + " |" + RESET);
+    System.err.println(BLUE + line + " | " + RESET + sourceLine);
+    System.err.println(BLUE + pad + " | " + RESET + " ".repeat(column - 1) + RED + "^".repeat(where == null || where.isEmpty() ? 1 : where.length()) + RESET);
+  }
+
+  private static String getLine(int line) {
+    int currLine = 1;
+    int start = 0;
+
+    for (int i = 0; i < source.length(); i++) {
+      if (source.charAt(i) == '\n') {
+        if (currLine == line) return source.substring(start, i);
+        currLine++;
+        start = i + 1;
+      }
     }
+
+    return source.substring(start);
   }
 }
