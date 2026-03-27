@@ -9,7 +9,11 @@ import java.nio.file.Paths;
 import java.util.List;
 
 public class Squirrelang {
+  private static final String RESET = "\033[0m";
+  private static final String RED = "\033[1;31m";
+  private static final String BLUE = "\033[1;34m";
   static boolean hadError = false;
+  static String fileName = "<stdin>";
 
   public static void main(String[] args) throws IOException {
     if (args.length > 1) {
@@ -22,12 +26,22 @@ public class Squirrelang {
     }
   }
 
+  /**
+   * Interprets a file passed in.
+   * @param pathName
+   * @throws IOException
+   */
   private static void runFile(String pathName) throws IOException {
+    fileName = pathName.substring(pathName.lastIndexOf("/") + 1);
     byte[] bytes = Files.readAllBytes(Paths.get(pathName));
     run(new String(bytes, Charset.defaultCharset()));
     if (hadError) System.exit(65);
   }
 
+  /**
+   * A REPL prompt that interprets as it comes in stdin.
+   * @throws IOException
+   */
   private static void runPrompt() throws IOException {
     InputStreamReader input = new InputStreamReader(System.in);
     BufferedReader reader = new BufferedReader(input);
@@ -41,31 +55,64 @@ public class Squirrelang {
     }
   }
 
+  /**
+   * Scans, parses and interprets source code.
+   * @param source
+   */
   private static void run(String source) {
     Scanner scanner = new Scanner(source);
     List<Token> tokens = scanner.scanTokens();
 
-    for (Token token : tokens) {
-      System.out.println(token);
-    }
+    Parser parser = new Parser(tokens);
+    Expr expression = parser.parse();
+
+    if (hadError) return;
+
+    System.out.println(new AstPrinter().print(expression));
   }
 
+  /**
+   * Reports an error in format:
+   * error: message
+   *   --> file:line
+   *    |
+   * @param line
+   * @param message
+   */
   static void error(int line, String message) {
     report(line, "", message);
   }
 
-  // report prints out the error in this format:
-  // Error: Unexpected "," in argument list
-  // 1 | fn foo(a, b,)
-  // if there is no "where", it prints out the error in this format:
-  // [line] Error: Unexpected "," in argument list
-  private static void report(int line, String where, String message) {
-    if (where.isEmpty()) {
-      System.err.println("[" + line + "] Error: " + message);
+  /**
+   * Reports an error in format:
+   * error: message
+   *   --> file:line
+   *   |
+   * l | token lexeme
+   * @param token
+   * @param message
+   */
+  static void error(Token token, String message) {
+    if (token.type == TokenType.EOF) {
+      report(token.line, null, message);
     } else {
-      System.err.println("Error: " + message);
-      System.err.println(line + " | " + where);
+      report(token.line, token.lexeme, message);
     }
-    hadError = true;
+  }
+
+  /**
+   * Formats and prints errors to stderr Rust-style.
+   * @param line
+   * @param where
+   * @param message
+   */
+  private static void report(int line, String where, String message) {
+    String pad = " ".repeat(String.valueOf(line).length());
+    System.err.println(RED + "error" + RESET + ": " + message);
+    System.err.println(BLUE + pad + " --> " + RESET + fileName + ":" + line);
+    System.err.println(BLUE + pad + "  |" + RESET);
+    if (where != null && !where.isEmpty()) {
+      System.err.println(BLUE + line + "  | " + RESET + where);
+    }
   }
 }

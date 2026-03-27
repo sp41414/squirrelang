@@ -39,3 +39,9 @@ tasks.named<JavaExec>("run") {
     standardInput = System.`in`
     workingDir = projectDir
 }
+
+tasks.jar {
+    manifest {
+        attributes["Main-Class"] = "org.squirrelang.Squirrelang"
+    }
+}

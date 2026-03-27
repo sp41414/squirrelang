@@ -10,7 +10,7 @@ This is the Java implementation for the language, as a Tree-Walk interpreter
 ./gradlew build
 ```
 
-The compiled class can be found at `app/bin/main/org/squirrelang/Squirrelang.class`.
+The compiled jar can be found at `app/build/libs/app.jar`
 
 ## Running
 ```bash
