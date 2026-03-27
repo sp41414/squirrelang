@@ -1,10 +1,10 @@
 package org.squirrelang;
 
 class AstPrinter implements Expr.Visitor<String> {
-    public static void main(String []args) {
-        Expr expression = new Expr.Binary(new Expr.Grouping(new Expr.Binary(new Expr.Literal(50), new Token(TokenType.PLUS, "+", null, 1), new Expr.Literal(60))), new Token(TokenType.STAR, "*", null, 1), new Expr.Literal(4));
-        System.out.println(new AstPrinter().print(expression));
-    }
+    // public static void main(String []args) {
+    //     Expr expression = new Expr.Binary(new Expr.Grouping(new Expr.Binary(new Expr.Literal(50), new Token(TokenType.PLUS, "+", null, 1), new Expr.Literal(60))), new Token(TokenType.STAR, "*", null, 1), new Expr.Literal(4));
+    //     System.out.println(new AstPrinter().print(expression));
+    // }
 
     String print(Expr expr) {
         return expr.accept(this);
