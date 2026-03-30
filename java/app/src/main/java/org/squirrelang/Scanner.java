@@ -53,7 +53,7 @@ class Scanner {
       scanToken();
     }
 
-    tokens.add(new Token(TokenType.EOF, "", null, line, column));
+    tokens.add(new Token(TokenType.EOF, "", null, line, column-1));
     return tokens;
   }
 
@@ -209,8 +209,10 @@ class Scanner {
         break;
       case '?':
         addToken(QUESTION);
+        break;
       case ':':
         addToken(COLON);
+        break;
       case '^':
         addToken(XOR);
         break;

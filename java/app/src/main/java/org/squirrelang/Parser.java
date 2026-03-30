@@ -28,13 +28,23 @@ public class Parser {
     }
 
     private Expr expression() {
-        return ternary();
+        return comma();
     }
 
-    /**
-     * ternary grammar
-     * ternary -> bitwiseOr "?" bitwiseOr ":" ternary | bitwiseOr
-     */
+    private Expr comma() {
+        Expr expr = ternary();
+        while (match(COMMA)) {
+            Token operator = previous();
+            if (!canStartExpression()) {
+                throw error(operator, "Expect expression after ','");
+            }
+            Expr right = ternary();
+            expr = new Expr.Binary(expr, operator, right);
+        }
+
+        return expr;
+    }
+
     private Expr ternary() {
         Expr expr = bitwiseOr();
 
@@ -196,6 +206,11 @@ public class Parser {
             return advance();
 
         throw error(peek(), errorMessage);
+    }
+
+    private boolean canStartExpression() {
+        return check(NUMBER) || check(STRING) || check(IDENTIFIER) || check(LEFT_PAREN) || check(BANG) || check(MINUS)
+                || check(TILDE) || check(TRUE) || check(FALSE) || check(NIL);
     }
 
     private ParseError error(Token token, String message) {

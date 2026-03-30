@@ -104,7 +104,7 @@ public class Squirrelang {
    */
   static void error(Token token, String message) {
     if (token.type == TokenType.EOF) {
-      report(token.line, 0, null, message);
+      report(token.line, token.column, null, message);
     } else {
       report(token.line, token.column, token.lexeme, message);
     }
