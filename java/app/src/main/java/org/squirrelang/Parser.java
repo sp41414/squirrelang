@@ -28,7 +28,24 @@ public class Parser {
     }
 
     private Expr expression() {
-        return bitwiseOr();
+        return ternary();
+    }
+
+    /**
+     * ternary grammar
+     * ternary -> bitwiseOr "?" bitwiseOr ":" ternary | bitwiseOr
+     */
+    private Expr ternary() {
+        Expr expr = bitwiseOr();
+
+        if (match(QUESTION)) {
+            Expr thenExpr = bitwiseOr();
+            consume(COLON, "Expect ':' after ternary condition");
+            Expr elsExpr = ternary();
+            return new Expr.Ternary(expr, thenExpr, elsExpr);
+        }
+
+        return expr;
     }
 
     private Expr bitwiseOr() {

@@ -16,7 +16,8 @@ public class GenerateAst {
                 "Binary   : Expr left, Token operator, Expr right",
                 "Grouping : Expr expression",
                 "Literal  : Object value",
-                "Unary    : Token operator, Expr right"));
+                "Unary    : Token operator, Expr right",
+                "Ternary  : Expr condition, Expr thenBranch, Expr elseBranch"));
     }
 
     private static void defineAst(String outputDir, String baseName, List<String> types) throws IOException {
@@ -58,7 +59,7 @@ public class GenerateAst {
         fileWriter.println("    @Override");
         fileWriter.println("    <R> R accept(Visitor<R> visitor) {");
         fileWriter.println("      return visitor.visit" +
-            className + baseName + "(this);");
+                className + baseName + "(this);");
         fileWriter.println("    }");
 
         fileWriter.println();
@@ -73,7 +74,8 @@ public class GenerateAst {
         for (String type : types) {
             String typeName = type.split(":")[0].trim();
             // e.g. R visitBinaryExpr(Binary expr)
-            fileWriter.println("    R visit" + typeName + baseName + "(" + typeName + " " + baseName.toLowerCase() + ");");
+            fileWriter.println(
+                    "    R visit" + typeName + baseName + "(" + typeName + " " + baseName.toLowerCase() + ");");
         }
         fileWriter.println("  }");
     }

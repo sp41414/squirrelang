@@ -43,6 +43,7 @@ class Scanner {
   /**
    * Produces tokens from a file.
    * The last token is always EOF.
+   *
    * @return
    */
   List<Token> scanTokens() {
@@ -58,6 +59,7 @@ class Scanner {
 
   /**
    * Checks whether the scanner's location is at the source's end.
+   *
    * @return
    */
   private boolean isAtEnd() {
@@ -66,6 +68,7 @@ class Scanner {
 
   /**
    * Increments the scanner's location by one.
+   *
    * @return
    */
   private char advance() {
@@ -75,6 +78,7 @@ class Scanner {
 
   /**
    * Check if the character is a digit.
+   *
    * @param c
    * @return
    */
@@ -84,12 +88,15 @@ class Scanner {
 
   /**
    * Consumes a character and compares against input.
+   *
    * @param expected
    * @return
    */
   private boolean match(char expected) {
-    if (isAtEnd()) return false;
-    if (source.charAt(current) != expected) return false;
+    if (isAtEnd())
+      return false;
+    if (source.charAt(current) != expected)
+      return false;
     column++;
     current++;
     return true;
@@ -97,25 +104,30 @@ class Scanner {
 
   /**
    * Returns the character at scanner's location.
+   *
    * @return
    */
   private char peek() {
-    if (isAtEnd()) return '\0';
+    if (isAtEnd())
+      return '\0';
     return source.charAt(current);
   }
 
   /**
    * Returns the character after the scanner's location
    * without consuming the current character.
+   *
    * @return
    */
   private char peekNext() {
-    if (current + 1 >= source.length()) return '\0';
+    if (current + 1 >= source.length())
+      return '\0';
     return source.charAt(current + 1);
   }
 
   /**
    * Checks if a character is alphabetical or _.
+   *
    * @param c
    * @return
    */
@@ -126,6 +138,7 @@ class Scanner {
   /**
    * Checks if a character is either alphabetical,
    * a number, or _.
+   *
    * @param c
    * @return
    */
@@ -136,6 +149,7 @@ class Scanner {
   /**
    * Add a token without literal value such as
    * numbers, strings, or booleans.
+   *
    * @param type
    */
   private void addToken(TokenType type) {
@@ -144,7 +158,8 @@ class Scanner {
 
   /**
    * Creates a token for the current lexeme and adds it to the list.
-   * @param type e.g. NUMBER, or STRING
+   *
+   * @param type    e.g. NUMBER, or STRING
    * @param literal The value, e.g. 12.3, "Hello, World"
    */
   private void addToken(TokenType type, Object literal) {
@@ -153,8 +168,10 @@ class Scanner {
   }
 
   /**
-   * Scans the next token, handling single and multi-character tokens (!=, ==, <<, &&, etc.),
-   * whitespace, line comments, nested block comments, strings, numbers, and identifiers.
+   * Scans the next token, handling single and multi-character tokens (!=, ==, <<,
+   * &&, etc.),
+   * whitespace, line comments, nested block comments, strings, numbers, and
+   * identifiers.
    * Unrecognised characters trigger an error and scanning continues.
    */
   private void scanToken() {
@@ -190,6 +207,10 @@ class Scanner {
       case '*':
         addToken(STAR);
         break;
+      case '?':
+        addToken(QUESTION);
+      case ':':
+        addToken(COLON);
       case '^':
         addToken(XOR);
         break;
@@ -229,7 +250,8 @@ class Scanner {
       case '/':
         if (match('/')) {
           // A comment goes until the end of the line.
-          while (peek() != '\n' && !isAtEnd()) advance();
+          while (peek() != '\n' && !isAtEnd())
+            advance();
         } else if (match('*')) {
           multiLineCommentDepth++;
           multiLineComment();
@@ -251,10 +273,12 @@ class Scanner {
         break;
       default:
         if (isDigit(c)) {
-          while (isDigit(peek())) advance();
+          while (isDigit(peek()))
+            advance();
           if (peek() == '.' && isDigit(peekNext())) {
             advance();
-            while (isDigit(peek())) advance();
+            while (isDigit(peek()))
+              advance();
           }
           addToken(NUMBER, Double.parseDouble(source.substring(start, current)));
         } else if (isAlpha(c)) {
@@ -321,11 +345,13 @@ class Scanner {
    * Otherwise, it is (probably) a user-defined identifier.
    */
   private void identifier() {
-    while (isAlphaNumeric(peek())) advance();
+    while (isAlphaNumeric(peek()))
+      advance();
 
     String text = source.substring(start, current);
     TokenType type = keywords.get(text);
-    if (type == null) type = IDENTIFIER;
+    if (type == null)
+      type = IDENTIFIER;
     addToken(type);
   }
 }

@@ -2,8 +2,12 @@ package org.squirrelang;
 
 class ReversePolishAstPrinter implements Expr.Visitor<String> {
     // public static void main(String []args) {
-    //     Expr expression = new Expr.Binary(new Expr.Grouping(new Expr.Binary(new Expr.Literal(1), new Token(TokenType.PLUS, "+", null, 1), new Expr.Literal(2))), new Token(TokenType.STAR, "*", null, 1), new Expr.Grouping(new Expr.Binary(new Expr.Literal(4), new Token(TokenType.MINUS, "-", null, 1), new Expr.Literal(3))));
-    //     System.out.println(new ReversePolishAstPrinter().print(expression));
+    // Expr expression = new Expr.Binary(new Expr.Grouping(new Expr.Binary(new
+    // Expr.Literal(1), new Token(TokenType.PLUS, "+", null, 1), new
+    // Expr.Literal(2))), new Token(TokenType.STAR, "*", null, 1), new
+    // Expr.Grouping(new Expr.Binary(new Expr.Literal(4), new Token(TokenType.MINUS,
+    // "-", null, 1), new Expr.Literal(3))));
+    // System.out.println(new ReversePolishAstPrinter().print(expression));
     // }
 
     String print(Expr expr) {
@@ -22,7 +26,8 @@ class ReversePolishAstPrinter implements Expr.Visitor<String> {
 
     @Override
     public String visitLiteralExpr(Expr.Literal expr) {
-        if (expr.value == null) return "nil";
+        if (expr.value == null)
+            return "nil";
         return expr.value.toString();
     }
 
@@ -31,14 +36,19 @@ class ReversePolishAstPrinter implements Expr.Visitor<String> {
         return build(expr.operator.lexeme, expr.right);
     }
 
-  private String build(String name, Expr ...exprs) {
-    StringBuilder builder = new StringBuilder();
-
-    for (Expr expr : exprs) {
-        builder.append(expr.accept(this)).append(" ");
+    @Override
+    public String visitTernaryExpr(Expr.Ternary expr) {
+        return "RPN does not support Ternary operators";
     }
-    builder.append(name);
 
-    return builder.toString().trim();
-  }
+    private String build(String name, Expr... exprs) {
+        StringBuilder builder = new StringBuilder();
+
+        for (Expr expr : exprs) {
+            builder.append(expr.accept(this)).append(" ");
+        }
+        builder.append(name);
+
+        return builder.toString().trim();
+    }
 }
