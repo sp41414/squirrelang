@@ -27,12 +27,6 @@ public class Squirrelang {
     }
   }
 
-  /**
-   * Interprets a file passed in.
-   * 
-   * @param pathName
-   * @throws IOException
-   */
   private static void runFile(String pathName) throws IOException {
     fileName = pathName.substring(pathName.lastIndexOf("/") + 1);
     source = new String(Files.readAllBytes(Paths.get(pathName)), Charset.defaultCharset());
@@ -41,11 +35,6 @@ public class Squirrelang {
       System.exit(65);
   }
 
-  /**
-   * A REPL prompt that interprets as it comes in stdin.
-   * 
-   * @throws IOException
-   */
   private static void runPrompt() throws IOException {
     InputStreamReader input = new InputStreamReader(System.in);
     BufferedReader reader = new BufferedReader(input);
@@ -60,11 +49,6 @@ public class Squirrelang {
     }
   }
 
-  /**
-   * Scans, parses and interprets source code.
-   * 
-   * @param source
-   */
   private static void run(String source) {
     Scanner scanner = new Scanner(source);
     List<Token> tokens = scanner.scanTokens();
@@ -110,13 +94,6 @@ public class Squirrelang {
     }
   }
 
-  /**
-   * Formats and prints errors to stderr Rust-style.
-   * 
-   * @param line
-   * @param where
-   * @param message
-   */
   private static void report(int line, int column, String where, String message) {
     String pad = " ".repeat(String.valueOf(line).length());
     String sourceLine = getLine(line);
