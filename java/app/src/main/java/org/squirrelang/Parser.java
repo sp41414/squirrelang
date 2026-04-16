@@ -137,9 +137,21 @@ public class Parser {
     }
 
     private Expr comparison() {
-        Expr expr = term();
+        Expr expr = shift();
 
         while (match(GREATER, GREATER_EQUAL, LESS, LESS_EQUAL)) {
+            Token operator = previous();
+            Expr right = shift();
+            expr = new Expr.Binary(expr, operator, right);
+        }
+
+        return expr;
+    }
+
+    private Expr shift() {
+        Expr expr = term();
+
+        while (match(SHIFT_RIGHT, SHIFT_LEFT, SHIFT_RIGHT_UNSIGNED)) {
             Token operator = previous();
             Expr right = term();
             expr = new Expr.Binary(expr, operator, right);
@@ -173,7 +185,7 @@ public class Parser {
     }
 
     private Expr unary() {
-        if (match(BANG, MINUS, TILDE)) {
+        if (match(BANG, MINUS, TILDE, PLUS)) {
             Token operator = previous();
             Expr right = unary();
             return new Expr.Unary(operator, right);

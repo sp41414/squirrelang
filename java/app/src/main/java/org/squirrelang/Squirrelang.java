@@ -12,7 +12,9 @@ public class Squirrelang {
   private static final String RESET = "\033[0m";
   private static final String RED = "\033[1;31m";
   private static final String BLUE = "\033[1;34m";
+  private static final Interpreter interpreter = new Interpreter();
   static boolean hadError = false;
+  static boolean hadRuntimeError = false;
   static String fileName = "<stdin>";
   static String source = "";
 
@@ -33,6 +35,8 @@ public class Squirrelang {
     run(source);
     if (hadError)
       System.exit(65);
+    if (hadRuntimeError)
+      System.exit(70);
   }
 
   private static void runPrompt() throws IOException {
@@ -59,7 +63,7 @@ public class Squirrelang {
     if (hadError || expression == null)
       return;
 
-    System.out.println(new AstPrinter().print(expression));
+    interpreter.interpret(expression);
   }
 
   /**
@@ -92,6 +96,11 @@ public class Squirrelang {
     } else {
       report(token.line, token.column, token.lexeme, message);
     }
+  }
+
+  static void runtimeError(RuntimeError err) {
+    hadRuntimeError = true;
+    error(err.token, err.getMessage());
   }
 
   private static void report(int line, int column, String where, String message) {

@@ -13,3 +13,5 @@ bin
 # Ignore IDE folders
 .vscode
 .idea
+
+DS_Store

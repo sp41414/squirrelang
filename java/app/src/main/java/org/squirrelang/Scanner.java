@@ -161,7 +161,11 @@ class Scanner {
         break;
       case '>':
         if (match('>')) {
-          addToken(SHIFT_RIGHT);
+          if (match('>')) {
+            addToken(SHIFT_RIGHT_UNSIGNED);
+          } else {
+            addToken(SHIFT_RIGHT);
+          }
         } else if (match('=')) {
           addToken(GREATER_EQUAL);
         } else {

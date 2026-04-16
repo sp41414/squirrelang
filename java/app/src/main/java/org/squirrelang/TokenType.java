@@ -35,6 +35,7 @@ enum TokenType {
   TILDE,
   SHIFT_LEFT,
   SHIFT_RIGHT,
+  SHIFT_RIGHT_UNSIGNED,
 
   // Literals.
   IDENTIFIER,
