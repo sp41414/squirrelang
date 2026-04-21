@@ -5,7 +5,7 @@ import static org.squirrelang.TokenType.*;
 /*
 TODO list:
 [x] implement ternary operator
-[] bitwise operators by booleans aswell (convert to 0 and 1)
+[x] bitwise operators by booleans aswell (convert to 0 and 1)
 [] 3 < "pancake" should be 3 < "pancake".length() for example
 [] implement "scone" + 4 = "scone4"
 [] error on division by 0
@@ -102,22 +102,22 @@ public class Interpreter implements Expr.Visitor<Object> {
                 return !isEqual(left, right);
             case XOR:
                 checkNumberOperands(expr.operator, left, right);
-                return binaryBitwiseOperation((double) left, XOR, (double) right);
+                return binaryBitwiseOperation(left, XOR, right);
             case AND:
                 checkNumberOperands(expr.operator, left, right);
-                return binaryBitwiseOperation((double) left, AND, (double) right);
+                return binaryBitwiseOperation(left, AND, right);
             case OR:
                 checkNumberOperands(expr.operator, left, right);
-                return binaryBitwiseOperation((double) left, OR, (double) right);
+                return binaryBitwiseOperation(left, OR, right);
             case SHIFT_LEFT:
                 checkNumberOperands(expr.operator, left, right);
-                return binaryBitwiseOperation((double) left, SHIFT_LEFT, (double) right);
+                return binaryBitwiseOperation(left, SHIFT_LEFT, right);
             case SHIFT_RIGHT:
                 checkNumberOperands(expr.operator, left, right);
-                return binaryBitwiseOperation((double) left, SHIFT_RIGHT, (double) right);
+                return binaryBitwiseOperation(left, SHIFT_RIGHT, right);
             case SHIFT_RIGHT_UNSIGNED:
                 checkNumberOperands(expr.operator, left, right);
-                return binaryBitwiseOperation((double) left, SHIFT_RIGHT_UNSIGNED, (double) right);
+                return binaryBitwiseOperation(left, SHIFT_RIGHT_UNSIGNED, right);
         }
         return null;
     }
@@ -126,7 +126,7 @@ public class Interpreter implements Expr.Visitor<Object> {
     public Object visitTernaryExpr(Expr.Ternary expr) {
         Object condition = evaluate(expr.condition);
         if (isTruthy(condition)) return evaluate(expr.thenBranch);
-         else return evaluate(expr.elseBranch);
+        else return evaluate(expr.elseBranch);
     }
 
     private Object evaluate(Expr expr) {
@@ -146,20 +146,29 @@ public class Interpreter implements Expr.Visitor<Object> {
         return a.equals(b);
     }
 
-    private double binaryBitwiseOperation(double a, TokenType op, double b) {
-        long longA = Double.doubleToLongBits(a);
-        long longB = Double.doubleToLongBits(b);
+    private double binaryBitwiseOperation(Object a, TokenType op, Object b) {
+        long longA = 0;
+        long longB = 0;
 
-        switch(op) {
-            case XOR: return Double.longBitsToDouble(longA ^ longB);
-            case AND: return Double.longBitsToDouble(longA & longB);
-            case OR: return Double.longBitsToDouble(longA | longB);
-            case SHIFT_RIGHT: return Double.longBitsToDouble(longA >> longB);
-            case SHIFT_LEFT: return Double.longBitsToDouble(longA << longB);
-            case SHIFT_RIGHT_UNSIGNED: return Double.longBitsToDouble(longA >>> longB);
+        if (a instanceof Boolean && b instanceof Boolean) {
+            longA = isTruthy(a) ? 1L : 0L;
+            longB = isTruthy(b) ? 1L : 0L;
+        } else if (a instanceof Double && b instanceof Double) {
+            longA = ((Double) a).longValue();
+            longB = ((Double) b).longValue();
+        }
+
+        long result = switch (op) {
+            case XOR              -> longA ^ longB;
+            case AND              -> longA & longB;
+            case OR               -> longA | longB;
+            case SHIFT_RIGHT      -> longA >> longB;
+            case SHIFT_LEFT       -> longA << longB;
+            case SHIFT_RIGHT_UNSIGNED -> longA >>> longB;
+            default               -> 0L;
         };
 
-        return 0.0;
+        return (double) result;
     }
 
     private void checkNumberOperand(Token operator, Object operand) {
