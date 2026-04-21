@@ -141,6 +141,20 @@ public class Interpreter implements Expr.Visitor<Object> {
     }
 
     private boolean binaryComparison(Token op, Object left, Object right) {
+        // lexicographical comparison
+        if (left instanceof String l && right instanceof String r) {
+            int cmp = l.compareTo(r);
+            return switch (op.type) {
+                case GREATER       -> cmp > 0;
+                case GREATER_EQUAL -> cmp >= 0;
+                case LESS          -> cmp < 0;
+                case LESS_EQUAL    -> cmp <= 0;
+                default -> throw new RuntimeError(op, "Unexpected operator.");
+            };
+        }
+
+        // string length comparison (to another double)
+        // or double to double comparison
         double l = toDouble(left);
         double r = toDouble(right);
 
