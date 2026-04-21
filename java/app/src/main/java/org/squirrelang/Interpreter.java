@@ -4,11 +4,11 @@ import static org.squirrelang.TokenType.*;
 
 /*
 TODO list:
-implement ternary operator
-bitwise operators by booleans aswell (convert to 0 and 1)
-3 < "pancake" should be 3 < "pancake".length() for example
-implement "scone" + 4 = "scone4"
-error on division by 0
+[x] implement ternary operator
+[] bitwise operators by booleans aswell (convert to 0 and 1)
+[] 3 < "pancake" should be 3 < "pancake".length() for example
+[] implement "scone" + 4 = "scone4"
+[] error on division by 0
  */
 public class Interpreter implements Expr.Visitor<Object> {
     void interpret(Expr expression) {
@@ -64,8 +64,8 @@ public class Interpreter implements Expr.Visitor<Object> {
 
     @Override
     public Object visitBinaryExpr(Expr.Binary expr) {
-        Object right = evaluate(expr.right);
         Object left = evaluate(expr.left);
+        Object right = evaluate(expr.right);
 
         switch(expr.operator.type) {
             case MINUS:
@@ -117,15 +117,16 @@ public class Interpreter implements Expr.Visitor<Object> {
                 return binaryBitwiseOperation((double) left, SHIFT_RIGHT, (double) right);
             case SHIFT_RIGHT_UNSIGNED:
                 checkNumberOperands(expr.operator, left, right);
-                return binaryBitwiseOperation((double) left, SHIFT_RIGHT_UNSIGNED, (double) left);
+                return binaryBitwiseOperation((double) left, SHIFT_RIGHT_UNSIGNED, (double) right);
         }
         return null;
     }
 
-    // TODO
     @Override
     public Object visitTernaryExpr(Expr.Ternary expr) {
-        return null;
+        Object condition = evaluate(expr.condition);
+        if (isTruthy(condition)) return evaluate(expr.thenBranch);
+         else return evaluate(expr.elseBranch);
     }
 
     private Object evaluate(Expr expr) {

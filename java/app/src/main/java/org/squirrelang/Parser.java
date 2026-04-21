@@ -198,11 +198,11 @@ public class Parser {
         if (match(NUMBER, STRING))
             return new Expr.Literal(previous().literal);
         if (match(TRUE))
-            return new Expr.Literal(TRUE);
+            return new Expr.Literal(true);
         if (match(FALSE))
-            return new Expr.Literal(FALSE);
+            return new Expr.Literal(false);
         if (match(NIL))
-            return new Expr.Literal(NIL);
+            return new Expr.Literal(null);
 
         if (match(LEFT_PAREN)) {
             Expr expr = expression();
