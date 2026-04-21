@@ -6,9 +6,9 @@ import static org.squirrelang.TokenType.*;
 TODO list:
 [x] implement ternary operator
 [x] bitwise operators by booleans aswell (convert to 0 and 1)
-[] 3 < "pancake" should be 3 < "pancake".length() for example
+[x] 3 < "pancake" should be 3 < "pancake".length() for example
 [] implement "scone" + 4 = "scone4"
-[] error on division by 0
+[x] error on division by 0
  */
 public class Interpreter implements Expr.Visitor<Object> {
     void interpret(Expr expression) {
@@ -72,6 +72,9 @@ public class Interpreter implements Expr.Visitor<Object> {
                 return (double)left - (double)right;
             case SLASH:
                 checkNumberOperands(expr.operator, left, right);
+                if ((double)right == 0.0) {
+                    throw new RuntimeError(expr.operator, "Division by zero");
+                }
                 return (double)left / (double)right;
             case STAR:
                 checkNumberOperands(expr.operator, left, right);
@@ -80,22 +83,13 @@ public class Interpreter implements Expr.Visitor<Object> {
                 if (left instanceof Double && right instanceof Double) {
                     return (double)left + (double)right;
                 }
-                if (left instanceof String && right instanceof String) {
-                    return left + (String)right;
-                }
                 throw new RuntimeError(expr.operator, "Operands must be two numbers or two strings.");
             case GREATER:
-                checkNumberOperands(expr.operator, left, right);
-                return (double)left > (double)right;
             case GREATER_EQUAL:
-                checkNumberOperands(expr.operator, left, right);
-                return (double)left >= (double)right;
             case LESS:
-                checkNumberOperands(expr.operator, left, right);
-                return (double)left < (double)right;
             case LESS_EQUAL:
-                checkNumberOperands(expr.operator, left, right);
-                return (double)left <= (double)right;
+                checkNumberOrStringOperands(expr.operator, left, right);
+                return binaryComparison(expr.operator, left, right);
             case EQUAL_EQUAL:
                 return isEqual(left, right);
             case BANG_EQUAL:
@@ -146,34 +140,55 @@ public class Interpreter implements Expr.Visitor<Object> {
         return a.equals(b);
     }
 
-    private double binaryBitwiseOperation(Object a, TokenType op, Object b) {
-        long longA = 0;
-        long longB = 0;
+    private boolean binaryComparison(Token op, Object left, Object right) {
+        double l = toDouble(left);
+        double r = toDouble(right);
 
-        if (a instanceof Boolean && b instanceof Boolean) {
-            longA = isTruthy(a) ? 1L : 0L;
-            longB = isTruthy(b) ? 1L : 0L;
-        } else if (a instanceof Double && b instanceof Double) {
-            longA = ((Double) a).longValue();
-            longB = ((Double) b).longValue();
-        }
-
-        long result = switch (op) {
-            case XOR              -> longA ^ longB;
-            case AND              -> longA & longB;
-            case OR               -> longA | longB;
-            case SHIFT_RIGHT      -> longA >> longB;
-            case SHIFT_LEFT       -> longA << longB;
-            case SHIFT_RIGHT_UNSIGNED -> longA >>> longB;
-            default               -> 0L;
+        return switch (op.type) {
+            case GREATER -> l > r;
+            case GREATER_EQUAL ->  l >= r;
+            case LESS_EQUAL -> l <= r;
+            case LESS -> l < r;
+            default -> throw new RuntimeError(op, "Unexpected error in parsing token type.");
         };
+    }
 
-        return (double) result;
+    private double binaryBitwiseOperation(Object a, TokenType op, Object b) {
+        long longA = toLong(a);
+        long longB = toLong(b);
+
+        return (double) switch(op) {
+            case XOR                  -> longA ^ longB;
+            case AND                  -> longA & longB;
+            case OR                   -> longA | longB;
+            case SHIFT_RIGHT          -> longA >> longB;
+            case SHIFT_LEFT           -> longA << longB;
+            case SHIFT_RIGHT_UNSIGNED -> longA >>> longB;
+            default                   -> 0L;
+        };
+    }
+
+    private long toLong(Object val) {
+        if (val instanceof Double d)  return d.longValue();
+        if (val instanceof Boolean b) return b ? 1L : 0L;
+        return 0L;
+    }
+
+    private double toDouble(Object val) {
+        if (val instanceof Double d) return d;
+        if (val instanceof String s) return s.length();
+        return 0.0;
     }
 
     private void checkNumberOperand(Token operator, Object operand) {
         if (operand instanceof Double) return;
         throw new RuntimeError(operator, "Operand must be a number.");
+    }
+
+    private void checkNumberOrStringOperands(Token operator, Object left, Object right) {
+        if (left instanceof Double && right instanceof Double) return;
+        if (left instanceof String || right instanceof String) return;
+        throw new RuntimeError(operator, "Operands must be numbers or strings.");
     }
 
     private void checkNumberOperands(Token operator, Object left, Object right) {
