@@ -83,7 +83,10 @@ public class Interpreter implements Expr.Visitor<Object> {
                 if (left instanceof Double && right instanceof Double) {
                     return (double)left + (double)right;
                 }
-                throw new RuntimeError(expr.operator, "Operands must be two numbers or two strings.");
+                if (left instanceof String) {
+                    return left + stringify(right);
+                }
+                throw new RuntimeError(expr.operator, "Operands must be two numbers or a string and any type.");
             case GREATER:
             case GREATER_EQUAL:
             case LESS:
