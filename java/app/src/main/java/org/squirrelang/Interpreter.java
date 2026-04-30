@@ -1,20 +1,15 @@
 package org.squirrelang;
 
+import java.util.List;
+
 import static org.squirrelang.TokenType.*;
 
-/*
-TODO list:
-[x] implement ternary operator
-[x] bitwise operators by booleans aswell (convert to 0 and 1)
-[x] 3 < "pancake" should be 3 < "pancake".length() for example
-[] implement "scone" + 4 = "scone4"
-[x] error on division by 0
- */
-public class Interpreter implements Expr.Visitor<Object> {
-    void interpret(Expr expression) {
+public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
+    void interpret(List<Stmt> statements) {
         try {
-            Object value = evaluate(expression);
-            System.out.println(stringify(value));
+            for (Stmt statement : statements) {
+                execute(statement);
+            }
         } catch (RuntimeError error) {
             Squirrelang.runtimeError(error);
         }
@@ -31,6 +26,19 @@ public class Interpreter implements Expr.Visitor<Object> {
         }
 
         return value.toString();
+    }
+
+    @Override
+    public Void visitExpressionStmt(Stmt.Expression stmt) {
+        evaluate(stmt.expression);
+        return null;
+    }
+
+    @Override
+    public Void visitPrintStmt(Stmt.Print stmt) {
+        Object value = evaluate(stmt.expression);
+        System.out.println(stringify(value));
+        return null;
     }
 
     @Override
@@ -128,6 +136,10 @@ public class Interpreter implements Expr.Visitor<Object> {
 
     private Object evaluate(Expr expr) {
         return expr.accept(this);
+    }
+
+    private void execute(Stmt stmt) {
+        stmt.accept(this);
     }
 
     private boolean isTruthy(Object object) {

@@ -31,7 +31,7 @@ public class Squirrelang {
 
   private static void runFile(String pathName) throws IOException {
     fileName = pathName.substring(pathName.lastIndexOf("/") + 1);
-    source = new String(Files.readAllBytes(Paths.get(pathName)), Charset.defaultCharset());
+    source = Files.readString(Paths.get(pathName), Charset.defaultCharset());
     run(source);
     if (hadError)
       System.exit(65);
@@ -58,12 +58,12 @@ public class Squirrelang {
     List<Token> tokens = scanner.scanTokens();
 
     Parser parser = new Parser(tokens);
-    Expr expression = parser.parse();
+    List<Stmt> statements = parser.parse();
 
-    if (hadError || expression == null)
+    if (hadError || statements == null)
       return;
 
-    interpreter.interpret(expression);
+    interpreter.interpret(statements);
   }
 
   /**
@@ -71,9 +71,6 @@ public class Squirrelang {
    * error: message
    * --> file:line:col
    * |
-   * 
-   * @param line
-   * @param message
    */
   static void error(int line, int column, String message) {
     report(line, column, "", message);
@@ -86,9 +83,6 @@ public class Squirrelang {
    * |
    * l | token lexeme
    * ^^^^^
-   * 
-   * @param token
-   * @param message
    */
   static void error(Token token, String message) {
     if (token.type == TokenType.EOF) {

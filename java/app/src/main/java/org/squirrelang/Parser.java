@@ -1,13 +1,9 @@
 package org.squirrelang;
 
+import java.util.ArrayList;
 import java.util.List;
 import static org.squirrelang.TokenType.*;
 
-/**
- * Parses a flat list of tokens into an expression tree using recursive descent.
- * Operator precedence (low to high): equality, bitwise, comparison, term,
- * factor, unary, primary.
- */
 public class Parser {
     private static class ParseError extends RuntimeException {
     }
@@ -19,12 +15,30 @@ public class Parser {
         this.tokens = tokens;
     }
 
-    Expr parse() {
-        try {
-            return expression();
-        } catch (ParseError error) {
-            return null;
+    List<Stmt> parse() {
+        List<Stmt> statements = new ArrayList<>();
+        while (!isAtEnd()) {
+            statements.add(statement());
         }
+        return statements;
+    }
+
+    private Stmt statement() {
+        if (match(PRINT)) return printStatement();
+
+        return expressionStatement();
+    }
+
+    private Stmt printStatement() {
+        Expr value = expression();
+        consume(SEMICOLON, "Expect ; after expression.");
+        return new Stmt.Print(value);
+    }
+
+    private Stmt expressionStatement() {
+        Expr value = expression();
+        consume(SEMICOLON, "Expect ; after expression.");
+        return new Stmt.Expression(value);
     }
 
     private Expr expression() {
