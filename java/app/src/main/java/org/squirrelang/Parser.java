@@ -18,9 +18,31 @@ public class Parser {
     List<Stmt> parse() {
         List<Stmt> statements = new ArrayList<>();
         while (!isAtEnd()) {
-            statements.add(statement());
+            statements.add(declaration());
         }
         return statements;
+    }
+
+    private Stmt declaration() {
+        try {
+            if (match(VAR)) return varDeclaration();
+            return statement();
+        } catch (ParseError error) {
+            synchronize();
+            return null;
+        }
+    }
+
+    private Stmt varDeclaration() {
+        Token name = consume(IDENTIFIER, "Expect variable name.");
+
+        Expr initializer = null;
+        if (match(EQUAL)) {
+            initializer = expression();
+        }
+
+        consume(SEMICOLON, "Expect ; after declaration.");
+        return new Stmt.Var(name, initializer);
     }
 
     private Stmt statement() {
@@ -46,7 +68,7 @@ public class Parser {
     }
 
     private Expr comma() {
-        Expr expr = ternary();
+        Expr expr = assignment();
         while (match(COMMA)) {
             Token operator = previous();
             if (!canStartExpression()) {
@@ -54,6 +76,23 @@ public class Parser {
             }
             Expr right = ternary();
             expr = new Expr.Binary(expr, operator, right);
+        }
+
+        return expr;
+    }
+
+    private Expr assignment() {
+        Expr expr = ternary();
+        if (match(EQUAL)) {
+            Token equals = previous();
+            Expr value = assignment();
+
+            if (expr instanceof Expr.Variable) {
+                Token name = ((Expr.Variable) expr).name;
+                return new Expr.Assign(name, value);
+            }
+
+            error(equals, "Invalid assignment target.");
         }
 
         return expr;
@@ -217,7 +256,9 @@ public class Parser {
             return new Expr.Literal(false);
         if (match(NIL))
             return new Expr.Literal(null);
-
+        if (match(IDENTIFIER)) {
+            return new Expr.Variable(previous());
+        }
         if (match(LEFT_PAREN)) {
             Expr expr = expression();
             consume(RIGHT_PAREN, "Expect ')' after expression.");
