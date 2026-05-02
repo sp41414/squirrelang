@@ -13,7 +13,7 @@ public class GenerateAst {
         }
         String outputDir = args[0];
         defineAst(outputDir, "Expr", Arrays.asList(
-                "Assign : Token name, Expr value",
+                "Assign   : Token name, Expr value",
                 "Binary   : Expr left, Token operator, Expr right",
                 "Grouping : Expr expression",
                 "Literal  : Object value",
@@ -21,10 +21,10 @@ public class GenerateAst {
                 "Ternary  : Expr condition, Expr thenBranch, Expr elseBranch",
                 "Variable : Token name"));
         defineAst(outputDir, "Stmt", Arrays.asList(
+                "Block      : List<Stmt> statements",
                 "Expression : Expr expression",
-                "Print : Expr expression",
-                "Var  : Token name, Expr initializer"
-        ));
+                "Print      : Expr expression",
+                "Var        : Token name, Expr initializer"));
     }
 
     private static void defineAst(String outputDir, String baseName, List<String> types) throws IOException {
@@ -33,8 +33,8 @@ public class GenerateAst {
 
         fileWriter.println("package org.squirrelang;");
         fileWriter.println();
-        // fileWriter.println("import java.util.List;");
-        // fileWriter.println();
+        fileWriter.println("import java.util.List;");
+        fileWriter.println();
         fileWriter.println("abstract class " + baseName + "{ ");
         defineVisitor(fileWriter, baseName, types);
         for (String type : types) {

@@ -1,8 +1,8 @@
 package org.squirrelang;
 
-import java.util.List;
-
 import static org.squirrelang.TokenType.*;
+
+import java.util.List;
 
 public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     private Environment environment = new Environment();
@@ -18,7 +18,8 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
 
     private String stringify(Object value) {
-        if (value == null) return "nil";
+        if (value == null)
+            return "nil";
         if (value instanceof Double) {
             String text = value.toString();
             if (text.endsWith(".0")) {
@@ -51,6 +52,12 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         }
 
         environment.define(stmt.name.lexeme, value);
+        return null;
+    }
+
+    @Override
+    public Void visitBlockStmt(Stmt.Block stmt) {
+        executeBlock(stmt.statements, new Environment(environment));
         return null;
     }
 
@@ -91,7 +98,8 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
             // cant do NOT on doubles, so make it LONG, apply NOT, then back to double again
             case TILDE:
                 return Double.longBitsToDouble(~Double.doubleToLongBits((double) right));
-        };
+        }
+        ;
         return null;
     }
 
@@ -100,21 +108,21 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         Object left = evaluate(expr.left);
         Object right = evaluate(expr.right);
 
-        switch(expr.operator.type) {
+        switch (expr.operator.type) {
             case MINUS:
-                return (double)left - (double)right;
+                return (double) left - (double) right;
             case SLASH:
                 checkNumberOperands(expr.operator, left, right);
-                if ((double)right == 0.0) {
+                if ((double) right == 0.0) {
                     throw new RuntimeError(expr.operator, "Division by zero");
                 }
-                return (double)left / (double)right;
+                return (double) left / (double) right;
             case STAR:
                 checkNumberOperands(expr.operator, left, right);
-                return (double)left * (double)right;
+                return (double) left * (double) right;
             case PLUS:
                 if (left instanceof Double && right instanceof Double) {
-                    return (double)left + (double)right;
+                    return (double) left + (double) right;
                 }
                 if (left instanceof String) {
                     return left + stringify(right);
@@ -155,12 +163,26 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     @Override
     public Object visitTernaryExpr(Expr.Ternary expr) {
         Object condition = evaluate(expr.condition);
-        if (isTruthy(condition)) return evaluate(expr.thenBranch);
-        else return evaluate(expr.elseBranch);
+        if (isTruthy(condition))
+            return evaluate(expr.thenBranch);
+        else
+            return evaluate(expr.elseBranch);
     }
 
     private Object evaluate(Expr expr) {
         return expr.accept(this);
+    }
+
+    private void executeBlock(List<Stmt> statements, Environment environment) {
+        Environment previous = this.environment;
+        try {
+            this.environment = environment;
+            for (Stmt statement : statements) {
+                execute(statement);
+            }
+        } finally {
+            this.environment = previous;
+        }
     }
 
     private void execute(Stmt stmt) {
@@ -168,14 +190,18 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
 
     private boolean isTruthy(Object object) {
-        if (object == null) return false;
-        if (object instanceof Boolean) return (boolean)object;
+        if (object == null)
+            return false;
+        if (object instanceof Boolean)
+            return (boolean) object;
         return true;
     }
 
     private boolean isEqual(Object a, Object b) {
-        if (a == null && b == null) return true;
-        if (a == null) return false;
+        if (a == null && b == null)
+            return true;
+        if (a == null)
+            return false;
 
         return a.equals(b);
     }
@@ -185,10 +211,10 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         if (left instanceof String l && right instanceof String r) {
             int cmp = l.compareTo(r);
             return switch (op.type) {
-                case GREATER       -> cmp > 0;
+                case GREATER -> cmp > 0;
                 case GREATER_EQUAL -> cmp >= 0;
-                case LESS          -> cmp < 0;
-                case LESS_EQUAL    -> cmp <= 0;
+                case LESS -> cmp < 0;
+                case LESS_EQUAL -> cmp <= 0;
                 default -> throw new RuntimeError(op, "Unexpected operator.");
             };
         }
@@ -200,7 +226,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
         return switch (op.type) {
             case GREATER -> l > r;
-            case GREATER_EQUAL ->  l >= r;
+            case GREATER_EQUAL -> l >= r;
             case LESS_EQUAL -> l <= r;
             case LESS -> l < r;
             default -> throw new RuntimeError(op, "Unexpected error in parsing token type.");
@@ -211,42 +237,50 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         long longA = toLong(a);
         long longB = toLong(b);
 
-        return (double) switch(op) {
-            case XOR                  -> longA ^ longB;
-            case AND                  -> longA & longB;
-            case OR                   -> longA | longB;
-            case SHIFT_RIGHT          -> longA >> longB;
-            case SHIFT_LEFT           -> longA << longB;
+        return (double) switch (op) {
+            case XOR -> longA ^ longB;
+            case AND -> longA & longB;
+            case OR -> longA | longB;
+            case SHIFT_RIGHT -> longA >> longB;
+            case SHIFT_LEFT -> longA << longB;
             case SHIFT_RIGHT_UNSIGNED -> longA >>> longB;
-            default                   -> 0L;
+            default -> 0L;
         };
     }
 
     private long toLong(Object val) {
-        if (val instanceof Double d)  return d.longValue();
-        if (val instanceof Boolean b) return b ? 1L : 0L;
+        if (val instanceof Double d)
+            return d.longValue();
+        if (val instanceof Boolean b)
+            return b ? 1L : 0L;
         return 0L;
     }
 
     private double toDouble(Object val) {
-        if (val instanceof Double d) return d;
-        if (val instanceof String s) return s.length();
+        if (val instanceof Double d)
+            return d;
+        if (val instanceof String s)
+            return s.length();
         return 0.0;
     }
 
     private void checkNumberOperand(Token operator, Object operand) {
-        if (operand instanceof Double) return;
+        if (operand instanceof Double)
+            return;
         throw new RuntimeError(operator, "Operand must be a number.");
     }
 
     private void checkNumberOrStringOperands(Token operator, Object left, Object right) {
-        if (left instanceof Double && right instanceof Double) return;
-        if (left instanceof String || right instanceof String) return;
+        if (left instanceof Double && right instanceof Double)
+            return;
+        if (left instanceof String || right instanceof String)
+            return;
         throw new RuntimeError(operator, "Operands must be numbers or strings.");
     }
 
     private void checkNumberOperands(Token operator, Object left, Object right) {
-        if (left instanceof Double && right instanceof Double) return;
+        if (left instanceof Double && right instanceof Double)
+            return;
         throw new RuntimeError(operator, "Operands must be numbers.");
     }
 }
