@@ -5,9 +5,12 @@ import static org.squirrelang.TokenType.*;
 import java.util.List;
 
 public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
+    private boolean isRepl;
     private Environment environment = new Environment();
 
-    void interpret(List<Stmt> statements) {
+    void interpret(List<Stmt> statements, boolean isRepl) {
+        this.isRepl = isRepl;
+
         try {
             for (Stmt statement : statements) {
                 execute(statement);
@@ -33,7 +36,8 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     @Override
     public Void visitExpressionStmt(Stmt.Expression stmt) {
-        evaluate(stmt.expression);
+        Object value = evaluate(stmt.expression);
+        if (isRepl) System.out.println(stringify(value));
         return null;
     }
 
@@ -46,12 +50,11 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     @Override
     public Void visitVarStmt(Stmt.Var stmt) {
-        Object value = null;
         if (stmt.initializer != null) {
-            value = evaluate(stmt.initializer);
+            environment.define(stmt.name.lexeme, evaluate(stmt.initializer));
+        } else {
+            environment.define(stmt.name.lexeme);
         }
-
-        environment.define(stmt.name.lexeme, value);
         return null;
     }
 

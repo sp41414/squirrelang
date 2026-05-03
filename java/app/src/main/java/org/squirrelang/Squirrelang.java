@@ -32,7 +32,7 @@ public class Squirrelang {
   private static void runFile(String pathName) throws IOException {
     fileName = pathName.substring(pathName.lastIndexOf("/") + 1);
     source = Files.readString(Paths.get(pathName), Charset.defaultCharset());
-    run(source);
+    run(source,false);
     if (hadError)
       System.exit(65);
     if (hadRuntimeError)
@@ -48,12 +48,14 @@ public class Squirrelang {
       source = reader.readLine();
       if (source == null)
         break;
-      run(source);
+      if (source.equalsIgnoreCase("exit"))
+        System.exit(0);
+      run(source,true);
       hadError = false;
     }
   }
 
-  private static void run(String source) {
+  private static void run(String source, boolean isRepl) {
     Scanner scanner = new Scanner(source);
     List<Token> tokens = scanner.scanTokens();
 
@@ -63,7 +65,7 @@ public class Squirrelang {
     if (hadError || statements == null)
       return;
 
-    interpreter.interpret(statements);
+    interpreter.interpret(statements, isRepl);
   }
 
   /**
