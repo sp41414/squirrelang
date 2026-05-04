@@ -20,20 +20,21 @@ class Scanner {
 
   static {
     keywords = new HashMap<>();
-    keywords.put("class", TokenType.CLASS);
-    keywords.put("else", TokenType.ELSE);
-    keywords.put("false", TokenType.FALSE);
-    keywords.put("for", TokenType.FOR);
-    keywords.put("fn", TokenType.FUNCTION);
-    keywords.put("if", TokenType.IF);
-    keywords.put("nil", TokenType.NIL);
-    keywords.put("out", TokenType.PRINT);
-    keywords.put("ret", TokenType.RETURN);
-    keywords.put("super", TokenType.SUPER);
-    keywords.put("this", TokenType.THIS);
-    keywords.put("true", TokenType.TRUE);
-    keywords.put("let", TokenType.VAR);
-    keywords.put("while", TokenType.WHILE);
+    keywords.put("class", CLASS);
+    keywords.put("else", ELSE);
+    keywords.put("false", FALSE);
+    keywords.put("for", FOR);
+    keywords.put("fn", FUNCTION);
+    keywords.put("if", IF);
+    keywords.put("nil", NIL);
+    keywords.put("out", PRINT);
+    keywords.put("ret", RETURN);
+    keywords.put("super", SUPER);
+    keywords.put("this", THIS);
+    keywords.put("true", TRUE);
+    keywords.put("let", VAR);
+    keywords.put("while", WHILE);
+    keywords.put("break", BREAK);
   }
 
   Scanner(String source) {
@@ -47,7 +48,7 @@ class Scanner {
       scanToken();
     }
 
-    tokens.add(new Token(TokenType.EOF, "", null, line, column - 1));
+    tokens.add(new Token(EOF, "", null, line, column - 1));
     return tokens;
   }
 

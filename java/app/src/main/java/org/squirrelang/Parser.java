@@ -56,6 +56,8 @@ public class Parser {
             return whileStatement();
         if (match(FOR))
             return forStatement();
+        if (match(BREAK))
+            return breakStatement();
         if (match(LEFT_BRACE))
             return new Stmt.Block(block());
 
@@ -135,9 +137,15 @@ public class Parser {
         return body;
     }
 
+    private Stmt breakStatement() {
+        Token token = previous();
+        consume(SEMICOLON, "Expect ';' after 'break'.");
+        return new Stmt.Break(token);
+    }
+
     private Stmt expressionStatement() {
         Expr value = expression();
-        consume(SEMICOLON, "Expect ; after expression.");
+        consume(SEMICOLON, "Expect ';' after expression.");
         return new Stmt.Expression(value);
     }
 

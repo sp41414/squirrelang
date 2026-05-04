@@ -7,6 +7,13 @@ import java.util.List;
 public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     private boolean isRepl;
     private Environment environment = new Environment();
+    private static class BreakException extends RuntimeException {
+        final Token token;
+        BreakException(Token token) {
+            super("", null, false, false);
+            this.token = token;
+        }
+    }
 
     void interpret(List<Stmt> statements, boolean isRepl) {
         this.isRepl = isRepl;
@@ -17,6 +24,8 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
             }
         } catch (RuntimeError error) {
             Squirrelang.runtimeError(error);
+        } catch (BreakException berror) {
+            Squirrelang.runtimeError(new RuntimeError(berror.token, "Must be inside loop to use 'break'."));
         }
     }
 
@@ -61,9 +70,18 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     @Override
     public Void visitWhileStmt(Stmt.While stmt) {
         while (isTruthy(evaluate(stmt.condition))) {
-            execute(stmt.body);
+            try {
+                execute(stmt.body);
+            } catch (BreakException b) {
+                break;
+            }
         }
         return null;
+    }
+
+    @Override
+    public Void visitBreakStmt(Stmt.Break stmt) {
+        throw new BreakException(stmt.token);
     }
 
     @Override
