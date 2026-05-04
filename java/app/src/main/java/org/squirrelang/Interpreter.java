@@ -2,17 +2,34 @@ package org.squirrelang;
 
 import static org.squirrelang.TokenType.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     private boolean isRepl;
-    private Environment environment = new Environment();
-    private static class BreakException extends RuntimeException {
-        final Token token;
-        BreakException(Token token) {
-            super("", null, false, false);
-            this.token = token;
-        }
+    final Environment globals = new Environment();
+    private Environment environment = globals;
+
+    Interpreter() {
+        globals.define(
+                "clock",
+                new SqCallable() {
+                    @Override
+                    public int arity() {
+                        return 0;
+                    }
+
+                    @Override
+                    public Object call(Interpreter interpreter, List<Object> args) {
+                        return (double)System.currentTimeMillis() / 1000.0;
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "<native fn>";
+                    }
+                }
+        );
     }
 
     void interpret(List<Stmt> statements, boolean isRepl) {
@@ -24,8 +41,20 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
             }
         } catch (RuntimeError error) {
             Squirrelang.runtimeError(error);
-        } catch (BreakException berror) {
+        } catch (Break berror) {
             Squirrelang.runtimeError(new RuntimeError(berror.token, "Must be inside loop to use 'break'."));
+        }
+    }
+
+    void executeBlock(List<Stmt> statements, Environment environment) {
+        Environment previous = this.environment;
+        try {
+            this.environment = environment;
+            for (Stmt statement : statements) {
+                execute(statement);
+            }
+        } finally {
+            this.environment = previous;
         }
     }
 
@@ -72,7 +101,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         while (isTruthy(evaluate(stmt.condition))) {
             try {
                 execute(stmt.body);
-            } catch (BreakException b) {
+            } catch (Break b) {
                 break;
             }
         }
@@ -81,7 +110,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     @Override
     public Void visitBreakStmt(Stmt.Break stmt) {
-        throw new BreakException(stmt.token);
+        throw new Break(stmt.token);
     }
 
     @Override
@@ -92,6 +121,21 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
             environment.define(stmt.name.lexeme);
         }
         return null;
+    }
+
+    @Override
+    public Void visitFunctionStmt(Stmt.Function stmt) {
+        SqFunction function = new SqFunction(stmt);
+        environment.define(stmt.name.lexeme, function);
+        return null;
+    }
+
+    @Override
+    public Void visitReturnStmt(Stmt.Return stmt) {
+        Object value = null;
+        if (stmt.value != null) value = evaluate(stmt.value);
+
+        throw new Return(value);
     }
 
     @Override
@@ -221,20 +265,30 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         return evaluate(expr.right);
     }
 
-    private Object evaluate(Expr expr) {
-        return expr.accept(this);
+    @Override
+    public Object visitCallExpr(Expr.Call expr) {
+        Object callee = evaluate(expr.callee);
+
+        List<Object> args = new ArrayList<>();
+        for (Expr arg : expr.args) {
+            args.add(evaluate(arg));
+        }
+
+        if (!(callee instanceof SqCallable function)) {
+            throw new RuntimeError(expr.paren, "Can only call functions and classes.");
+        }
+
+        if (args.size() != function.arity()) {
+            throw new RuntimeError(expr.paren, "Expected "
+                    + function.arity()
+                    + " arguments but got "
+                    + args.size() + ".");
+        }
+        return function.call(this, args);
     }
 
-    private void executeBlock(List<Stmt> statements, Environment environment) {
-        Environment previous = this.environment;
-        try {
-            this.environment = environment;
-            for (Stmt statement : statements) {
-                execute(statement);
-            }
-        } finally {
-            this.environment = previous;
-        }
+    private Object evaluate(Expr expr) {
+        return expr.accept(this);
     }
 
     private void execute(Stmt stmt) {
