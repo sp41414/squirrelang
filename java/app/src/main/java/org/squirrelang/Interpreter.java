@@ -180,7 +180,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
                 return !isTruthy(right);
             // cant do NOT on doubles, so make it LONG, apply NOT, then back to double again
             case TILDE:
-                return Double.longBitsToDouble(~Double.doubleToLongBits((double) right));
+                return (double)~toLong(right);
         }
         ;
         return null;
@@ -285,6 +285,11 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
                     + args.size() + ".");
         }
         return function.call(this, args);
+    }
+
+    @Override
+    public Object visitLambdaExpr(Expr.Lambda expr) {
+        return new SqFunction(expr.params, expr.body, environment);
     }
 
     private Object evaluate(Expr expr) {

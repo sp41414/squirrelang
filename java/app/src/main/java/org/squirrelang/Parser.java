@@ -32,8 +32,10 @@ public class Parser {
         try {
             if (match(VAR))
                 return varDeclaration();
-            if (match(FUNCTION))
+            if (check(FUNCTION) && checkNext(IDENTIFIER)) {
+                advance();
                 return function(FunctionType.function);
+            }
             return statement();
         } catch (ParseError error) {
             synchronize();
@@ -53,10 +55,7 @@ public class Parser {
         return new Stmt.Var(name, initializer);
     }
 
-    private Stmt function(FunctionType kind) {
-        Token name = consume(IDENTIFIER, "Expect " + kind + " name.");
-        consume(LEFT_PAREN, "Expect '(' after " + kind + " name.");
-
+    private List<Token> getParams() {
         List<Token> parameters = new ArrayList<>();
         if (!check(RIGHT_PAREN)) {
             do {
@@ -67,6 +66,14 @@ public class Parser {
                 parameters.add(consume(IDENTIFIER, "Expect parameter name."));
             } while (match(COMMA));
         }
+        return parameters;
+    }
+
+    private Stmt function(FunctionType kind) {
+        Token name = consume(IDENTIFIER, "Expect " + kind + " name.");
+        consume(LEFT_PAREN, "Expect '(' after " + kind + " name.");
+
+        List<Token> parameters = getParams();
         consume(RIGHT_PAREN, "Expect ')' after " + kind + " name.");
 
         consume(LEFT_BRACE, "Expect '{' before body.");
@@ -229,7 +236,7 @@ public class Parser {
         Expr expr = or();
 
         if (match(QUESTION)) {
-            Expr thenExpr = bitwiseOr();
+            Expr thenExpr = ternary();
             consume(COLON, "Expect ':' after ternary condition");
             Expr elsExpr = ternary();
             return new Expr.Ternary(expr, thenExpr, elsExpr);
@@ -320,6 +327,11 @@ public class Parser {
         if (isAtEnd())
             return false;
         return peek().type == type;
+    }
+
+    private boolean checkNext(TokenType type) {
+        if (current + 1 >= tokens.size()) return false;
+        return tokens.get(current + 1).type == type;
     }
 
     private Token advance() {
@@ -419,11 +431,21 @@ public class Parser {
                 if (args.size() > 255) {
                     error(peek(), "Cannot have more than 255 arguments.");
                 }
-                args.add(expression());
+                args.add(assignment());
             } while (match(COMMA));
         }
         Token paren = consume(RIGHT_PAREN, "Expect ')' after arguments.");
         return new Expr.Call(callee, paren, args);
+    }
+
+    private Expr lambda() {
+        consume(LEFT_PAREN, "Expect '(' after 'fn'.");
+        List<Token> params = getParams();
+        consume(RIGHT_PAREN, "Expect ')' after parameters.");
+
+        consume(LEFT_BRACE, "Expect '{' before body.");
+        List<Stmt> body = block();
+        return new Expr.Lambda(params, body);
     }
 
     private Expr primary() {
@@ -435,6 +457,8 @@ public class Parser {
             return new Expr.Literal(false);
         if (match(NIL))
             return new Expr.Literal(null);
+        if (match(FUNCTION))
+            return lambda();
         if (match(IDENTIFIER)) {
             return new Expr.Variable(previous());
         }
@@ -455,7 +479,7 @@ public class Parser {
     }
 
     private boolean canStartExpression() {
-        return check(NUMBER) || check(STRING) || check(IDENTIFIER) || check(LEFT_PAREN) || check(BANG) || check(MINUS)
+        return check(NUMBER) || check(STRING) || check(IDENTIFIER) || check(FUNCTION) || check(LEFT_PAREN) || check(BANG) || check(MINUS)
                 || check(TILDE) || check(TRUE) || check(FALSE) || check(NIL);
     }
 

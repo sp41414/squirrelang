@@ -6,6 +6,11 @@ public class SqFunction implements SqCallable {
     private final Stmt.Function declaration;
     private final Environment closure;
 
+    SqFunction(List<Token> params, List<Stmt> body, Environment closure) {
+        this.closure = closure;
+        this.declaration = new Stmt.Function(null, params, body);
+    }
+
     SqFunction(Stmt.Function declaration, Environment closure) {
         this.closure = closure;
         this.declaration = declaration;
@@ -35,6 +40,7 @@ public class SqFunction implements SqCallable {
 
     @Override
     public String toString() {
+        if (declaration.name == null) return "<fn>";
         return "<fn " + declaration.name.lexeme + ">";
     }
 }
