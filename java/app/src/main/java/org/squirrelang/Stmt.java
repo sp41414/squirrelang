@@ -10,6 +10,7 @@ abstract class Stmt{
     R visitReturnStmt(Return stmt);
     R visitVarStmt(Var stmt);
     R visitFunctionStmt(Function stmt);
+    R visitClassStmt(Class stmt);
     R visitIfStmt(If stmt);
     R visitWhileStmt(While stmt);
     R visitBreakStmt(Break stmt);
@@ -93,6 +94,20 @@ abstract class Stmt{
     final Token name;
     final List<Token> params;
     final List<Stmt> body;
+  }
+  static class Class extends Stmt{ 
+    Class(Token name, List<Stmt.Function> methods) { 
+      this.name = name;
+      this.methods = methods;
+    }
+
+    @Override
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitClassStmt(this);
+    }
+
+    final Token name;
+    final List<Stmt.Function> methods;
   }
   static class If extends Stmt{ 
     If(Expr condition, Stmt thenBranch, Stmt elseBranch) { 

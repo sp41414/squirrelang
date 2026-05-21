@@ -11,7 +11,8 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     private final Map<String, Token> used = new HashMap<>();
     private enum FunctionType {
         NONE,
-        FUNCTION
+        FUNCTION,
+        METHOD
     }
     private FunctionType currentFunction = FunctionType.NONE;
     private int loopDepth = 0;
@@ -57,6 +58,19 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         define(stmt.name);
 
         resolveFunction(stmt, FunctionType.FUNCTION);
+        return null;
+    }
+
+    @Override
+    public Void visitClassStmt(Stmt.Class stmt) {
+        declare(stmt.name);
+        define(stmt.name);
+
+        for (Stmt.Function method : stmt.methods) {
+           FunctionType declaration = FunctionType.METHOD;
+           resolveFunction(method, declaration);
+        }
+
         return null;
     }
 
@@ -165,6 +179,19 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     public Void visitAssignExpr(Expr.Assign expr) {
         resolve(expr.value);
         resolveLocal(expr, expr.name);
+        return null;
+    }
+
+    @Override
+    public Void visitGetExpr(Expr.Get expr) {
+        resolve(expr.object);
+        return null;
+    }
+
+    @Override
+    public Void visitSetExpr(Expr.Set expr) {
+        resolve(expr.object);
+        resolve(expr.value);
         return null;
     }
 

@@ -139,6 +139,21 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
 
     @Override
+    public Void visitClassStmt(Stmt.Class stmt) {
+        environment.define(stmt.name.lexeme, null);
+
+        Map<String, SqFunction> methods = new HashMap<>();
+        for (Stmt.Function method : stmt.methods) {
+            SqFunction function = new SqFunction(method, environment);
+            methods.put(method.name.lexeme, function);
+        }
+        SqClass cls = new SqClass(stmt.name.lexeme, methods);
+        environment.assign(stmt.name, cls);
+
+        return null;
+    }
+
+    @Override
     public Void visitReturnStmt(Stmt.Return stmt) {
         Object value = null;
         if (stmt.value != null) value = evaluate(stmt.value);
@@ -300,6 +315,28 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
                     + args.size() + ".");
         }
         return function.call(this, args);
+    }
+
+    @Override
+    public Object visitGetExpr(Expr.Get expr) {
+        Object object = evaluate(expr.object);
+        if (object instanceof SqInstance) {
+            return ((SqInstance) object).get(expr.name);
+        }
+
+        throw new RuntimeError(expr.name, "Only instances have properties.");
+    }
+
+    @Override
+    public Object visitSetExpr(Expr.Set expr) {
+        Object object = evaluate(expr.object);
+        if (!(object instanceof SqInstance)) {
+            throw new RuntimeError(expr.name, "Only instances have fields.");
+        }
+
+        Object value = evaluate(expr.value);
+        ((SqInstance) object).set(expr.name, value);
+        return value;
     }
 
     @Override
