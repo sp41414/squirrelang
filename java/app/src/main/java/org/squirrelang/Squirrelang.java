@@ -99,6 +99,7 @@ public class Squirrelang {
     } else {
       report(token.line, token.column, token.lexeme, message);
     }
+    hadError = true;
   }
 
   static void runtimeError(RuntimeError err) {

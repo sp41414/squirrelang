@@ -72,6 +72,7 @@ public class Parser {
     }
 
     private Stmt.Function function(FunctionType kind) {
+        boolean isStatic = match(STATIC);
         Token name = consume(IDENTIFIER, "Expect " + kind.name() + " name.");
         consume(LEFT_PAREN, "Expect '(' after " + kind.name() + " name.");
 
@@ -81,7 +82,7 @@ public class Parser {
         consume(LEFT_BRACE, "Expect '{' before body.");
         List<Stmt> body = block();
 
-        return new Stmt.Function(name, parameters, body);
+        return new Stmt.Function(isStatic, name, parameters, body);
     }
 
     private Stmt classDeclaration() {

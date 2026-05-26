@@ -13,7 +13,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         NONE,
         FUNCTION,
         INITIALIZER,
-        METHOD
+        METHOD,
     }
     private enum ClassType {
         NONE,
@@ -21,6 +21,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     }
     private FunctionType currentFunction = FunctionType.NONE;
     private ClassType currentClass = ClassType.NONE;
+    private boolean isInStaticMethod = false;
     private int loopDepth = 0;
 
     Resolver(Interpreter interpreter) {
@@ -81,6 +82,8 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         for (Stmt.Function method : stmt.methods) {
            FunctionType declaration = FunctionType.METHOD;
            if (method.name.lexeme.equals("init")) {
+               if (method.isStatic)
+                   Squirrelang.error(method.name, "Method cannot be an initializer and static.");
                declaration = FunctionType.INITIALIZER;
            }
 
@@ -191,6 +194,9 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         if (!scopes.isEmpty() && scopes.peek().get(expr.name) == Boolean.FALSE) {
             Squirrelang.error(expr.name, "Can't read local variable in its own initializer.");
         }
+        if (expr.name.lexeme.equals("self") && isInStaticMethod) {
+            Squirrelang.error(expr.name, "Can't use 'self' inside a static method.");
+        }
 
         resolveLocal(expr, expr.name);
         return null;
@@ -218,6 +224,10 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
     @Override
     public Void visitSelfExpr(Expr.Self expr) {
+        if (isInStaticMethod) {
+            Squirrelang.error(expr.keyword, "Cannot use 'self' inside a static method");
+            return null;
+        }
         if (currentClass == ClassType.NONE) {
             Squirrelang.error(expr.keyword, "Cannot use 'self' outside of a class.");
             return null;
@@ -260,8 +270,10 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     private void resolveFunction(Stmt.Function function, FunctionType functionType) {
         FunctionType enclosingFunction = currentFunction;
         int enclosingLoopDepth = loopDepth;
+        boolean wasInStaticMethod = isInStaticMethod;
 
         currentFunction = functionType;
+        isInStaticMethod = function.isStatic;
         loopDepth = 0;
 
         beginScope();
@@ -273,10 +285,11 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         endScope();
         loopDepth = enclosingLoopDepth;
         currentFunction = enclosingFunction;
+        isInStaticMethod = wasInStaticMethod;
     }
 
     private void resolveLambda(Expr.Lambda lambda) {
-        resolveFunction(new Stmt.Function(null, lambda.params, lambda.body), FunctionType.FUNCTION);
+        resolveFunction(new Stmt.Function(false, null, lambda.params, lambda.body), FunctionType.FUNCTION);
     }
 
     private void beginScope() {

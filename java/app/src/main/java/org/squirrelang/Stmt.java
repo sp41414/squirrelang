@@ -80,7 +80,8 @@ abstract class Stmt{
     final Expr initializer;
   }
   static class Function extends Stmt{ 
-    Function(Token name, List<Token> params, List<Stmt> body) { 
+    Function(boolean isStatic, Token name, List<Token> params, List<Stmt> body) { 
+      this.isStatic = isStatic;
       this.name = name;
       this.params = params;
       this.body = body;
@@ -91,6 +92,7 @@ abstract class Stmt{
       return visitor.visitFunctionStmt(this);
     }
 
+    final boolean isStatic;
     final Token name;
     final List<Token> params;
     final List<Stmt> body;

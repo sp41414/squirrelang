@@ -6,14 +6,20 @@ import java.util.Map;
 public class SqClass implements SqCallable {
     final String name;
     private final Map<String, SqFunction> methods;
+    private final Map<String, SqFunction> staticMethods;
 
-    SqClass(String name, Map<String, SqFunction> methods) {
+    SqClass(String name, Map<String, SqFunction> methods, Map<String, SqFunction> staticMethods) {
         this.name = name;
         this.methods = methods;
+        this.staticMethods = staticMethods;
     }
 
     SqFunction findMethod(String name) {
         return methods.get(name);
+    }
+
+    SqFunction findStaticMethod(String name) {
+        return staticMethods.get(name);
     }
 
     @Override

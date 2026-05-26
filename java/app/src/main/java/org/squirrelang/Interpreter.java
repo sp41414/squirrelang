@@ -133,7 +133,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     @Override
     public Void visitFunctionStmt(Stmt.Function stmt) {
-        SqFunction function = new SqFunction(stmt, environment, false);
+        SqFunction function = new SqFunction(stmt, environment, false, false);
         environment.define(stmt.name.lexeme, function);
         return null;
     }
@@ -143,11 +143,15 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         environment.define(stmt.name.lexeme, null);
 
         Map<String, SqFunction> methods = new HashMap<>();
+        Map<String, SqFunction> staticMethods = new HashMap<>();
         for (Stmt.Function method : stmt.methods) {
-            SqFunction function = new SqFunction(method, environment, stmt.name.lexeme.equals("init"));
-            methods.put(method.name.lexeme, function);
+            SqFunction function = new SqFunction(method, environment, stmt.name.lexeme.equals("init"), method.isStatic);
+            if (method.isStatic)
+                staticMethods.put(method.name.lexeme, function);
+            else
+                methods.put(method.name.lexeme, function);
         }
-        SqClass cls = new SqClass(stmt.name.lexeme, methods);
+        SqClass cls = new SqClass(stmt.name.lexeme, methods, staticMethods);
         environment.assign(stmt.name, cls);
 
         return null;
@@ -320,6 +324,11 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     @Override
     public Object visitGetExpr(Expr.Get expr) {
         Object object = evaluate(expr.object);
+        if (object instanceof SqClass) {
+            SqFunction method = ((SqClass) object).findStaticMethod(expr.name.lexeme);
+            if (method != null) return method;
+            throw new RuntimeError(expr.name, "Undefined static method '" + expr.name.lexeme + "'.");
+        }
         if (object instanceof SqInstance) {
             return ((SqInstance) object).get(expr.name);
         }

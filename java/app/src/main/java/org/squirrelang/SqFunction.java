@@ -6,17 +6,20 @@ public class SqFunction implements SqCallable {
     private final Stmt.Function declaration;
     private final Environment closure;
     private final boolean isInitializer;
+    private final boolean isStatic;
 
     SqFunction(List<Token> params, List<Stmt> body, Environment closure) {
         this.closure = closure;
-        this.declaration = new Stmt.Function(null, params, body);
+        this.declaration = new Stmt.Function(false, null, params, body);
         this.isInitializer = false;
+        this.isStatic = false;
     }
 
-    SqFunction(Stmt.Function declaration, Environment closure, boolean isInitializer) {
+    SqFunction(Stmt.Function declaration, Environment closure, boolean isInitializer, boolean isStatic) {
         this.closure = closure;
         this.declaration = declaration;
         this.isInitializer = isInitializer;
+        this.isStatic = isStatic;
     }
 
     @Override
@@ -46,7 +49,7 @@ public class SqFunction implements SqCallable {
     SqFunction bind(SqInstance instance) {
         Environment environment = new Environment(closure);
         environment.define("self", instance);
-        return new SqFunction(declaration, environment, isInitializer);
+        return new SqFunction(declaration, environment, isInitializer, isStatic);
     }
 
     @Override

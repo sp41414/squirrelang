@@ -54,6 +54,7 @@ enum TokenType {
   RETURN,
   BASE,
   SELF,
+  STATIC,
   TRUE,
   VAR,
   WHILE,
