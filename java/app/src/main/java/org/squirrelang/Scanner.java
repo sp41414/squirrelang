@@ -31,6 +31,7 @@ class Scanner {
     keywords.put("ret", RETURN);
     keywords.put("base", BASE);
     keywords.put("static", STATIC);
+    keywords.put("private", PRIVATE);
     keywords.put("self", SELF);
     keywords.put("true", TRUE);
     keywords.put("let", VAR);

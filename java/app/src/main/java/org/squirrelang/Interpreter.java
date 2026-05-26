@@ -8,10 +8,11 @@ import java.util.List;
 import java.util.Map;
 
 public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
-    private boolean isRepl;
+    SqClass currentExecutingClass = null;
     final Environment globals = new Environment();
     private Environment environment = globals;
     private final Map<Expr, Integer> locals = new HashMap<>();
+    private boolean isRepl;
 
     Interpreter() {
         globals.define(
@@ -133,7 +134,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     @Override
     public Void visitFunctionStmt(Stmt.Function stmt) {
-        SqFunction function = new SqFunction(stmt, environment, false, false);
+        SqFunction function = new SqFunction(stmt, environment, false, Modifiers.NONE);
         environment.define(stmt.name.lexeme, function);
         return null;
     }
@@ -145,15 +146,22 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         Map<String, SqFunction> methods = new HashMap<>();
         Map<String, SqFunction> staticMethods = new HashMap<>();
         for (Stmt.Function method : stmt.methods) {
-            SqFunction function = new SqFunction(method, environment, stmt.name.lexeme.equals("init"), method.isStatic);
-            if (method.isStatic)
+            SqFunction function = new SqFunction(method, environment, stmt.name.lexeme.equals("init"), method.modifiers);
+            if ((method.modifiers & Modifiers.STATIC) != 0)
                 staticMethods.put(method.name.lexeme, function);
             else
                 methods.put(method.name.lexeme, function);
         }
         SqClass cls = new SqClass(stmt.name.lexeme, methods, staticMethods);
-        environment.assign(stmt.name, cls);
 
+        for (SqFunction method : methods.values()) {
+            method.setClosureClass(cls);
+        }
+        for (SqFunction staticMethod : staticMethods.values()) {
+            staticMethod.setClosureClass(cls);
+        }
+
+        environment.assign(stmt.name, cls);
         return null;
     }
 
@@ -324,13 +332,22 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     @Override
     public Object visitGetExpr(Expr.Get expr) {
         Object object = evaluate(expr.object);
-        if (object instanceof SqClass) {
-            SqFunction method = ((SqClass) object).findStaticMethod(expr.name.lexeme);
-            if (method != null) return method;
+        if (object instanceof SqClass cls) {
+            SqFunction method = cls.findStaticMethod(expr.name.lexeme);
+            if (method != null) {
+                checkPrivacy(method, cls, expr.name);
+                return method;
+            }
             throw new RuntimeError(expr.name, "Undefined static method '" + expr.name.lexeme + "'.");
         }
-        if (object instanceof SqInstance) {
-            return ((SqInstance) object).get(expr.name);
+        if (object instanceof SqInstance instance) {
+            Object result = instance.get(expr.name);
+
+            if (result instanceof SqFunction method) {
+                checkPrivacy(method, instance.getCls(), expr.name);
+            }
+
+            return result;
         }
 
         throw new RuntimeError(expr.name, "Only instances have properties.");
@@ -466,5 +483,13 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         if (left instanceof Double && right instanceof Double)
             return;
         throw new RuntimeError(operator, "Operands must be numbers.");
+    }
+
+    private void checkPrivacy(SqFunction method, SqClass targetClass, Token name) {
+        if ((method.modifiers & Modifiers.PRIVATE) != 0) {
+            if (this.currentExecutingClass != targetClass) {
+                throw new RuntimeError(name, "Undefined property '" + name.lexeme + "'.");
+            }
+        }
     }
 }

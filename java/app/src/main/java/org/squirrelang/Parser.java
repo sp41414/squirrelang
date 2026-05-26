@@ -72,7 +72,12 @@ public class Parser {
     }
 
     private Stmt.Function function(FunctionType kind) {
-        boolean isStatic = match(STATIC);
+        int modifiers = Modifiers.NONE;
+        while (match(STATIC, PRIVATE)) {
+            if (previous().type == STATIC) modifiers |= Modifiers.STATIC;
+            if (previous().type == PRIVATE) modifiers |= Modifiers.PRIVATE;
+        }
+
         Token name = consume(IDENTIFIER, "Expect " + kind.name() + " name.");
         consume(LEFT_PAREN, "Expect '(' after " + kind.name() + " name.");
 
@@ -82,7 +87,7 @@ public class Parser {
         consume(LEFT_BRACE, "Expect '{' before body.");
         List<Stmt> body = block();
 
-        return new Stmt.Function(isStatic, name, parameters, body);
+        return new Stmt.Function(modifiers, name, parameters, body);
     }
 
     private Stmt classDeclaration() {

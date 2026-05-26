@@ -20,6 +20,7 @@ public class SqInstance {
         throw new RuntimeError(name, "Undefined property '" + name.lexeme + "'.");
     }
 
+    SqClass getCls() { return this.cls; }
     void set(Token name, Object value) {
         fields.put(name.lexeme, value);
     }

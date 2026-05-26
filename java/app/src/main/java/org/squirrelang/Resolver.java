@@ -61,6 +61,11 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
     @Override
     public Void visitFunctionStmt(Stmt.Function stmt) {
+        int classModifiers = Modifiers.ALL;
+        if ((stmt.modifiers & classModifiers) != 0 && currentClass == ClassType.NONE) {
+            Squirrelang.error(stmt.name, "Cannot use modifier outside of a class.");
+        }
+
         declare(stmt.name);
         define(stmt.name);
 
@@ -82,8 +87,8 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         for (Stmt.Function method : stmt.methods) {
            FunctionType declaration = FunctionType.METHOD;
            if (method.name.lexeme.equals("init")) {
-               if (method.isStatic)
-                   Squirrelang.error(method.name, "Method cannot be an initializer and static.");
+               if ((method.modifiers & Modifiers.ALL) != 0)
+                   Squirrelang.error(method.name, "Initializer cannot have modifiers.");
                declaration = FunctionType.INITIALIZER;
            }
 
@@ -273,7 +278,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         boolean wasInStaticMethod = isInStaticMethod;
 
         currentFunction = functionType;
-        isInStaticMethod = function.isStatic;
+        isInStaticMethod = (function.modifiers & Modifiers.STATIC) != 0;
         loopDepth = 0;
 
         beginScope();
@@ -289,7 +294,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     }
 
     private void resolveLambda(Expr.Lambda lambda) {
-        resolveFunction(new Stmt.Function(false, null, lambda.params, lambda.body), FunctionType.FUNCTION);
+        resolveFunction(new Stmt.Function(Modifiers.NONE, null, lambda.params, lambda.body), FunctionType.FUNCTION);
     }
 
     private void beginScope() {
