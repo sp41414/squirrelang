@@ -27,10 +27,10 @@ class Scanner {
     keywords.put("fn", FUNCTION);
     keywords.put("if", IF);
     keywords.put("nil", NIL);
-    keywords.put("out", PRINT);
+    keywords.put("print", PRINT);
     keywords.put("ret", RETURN);
-    keywords.put("super", SUPER);
-    keywords.put("this", THIS);
+    keywords.put("base", BASE);
+    keywords.put("self", SELF);
     keywords.put("true", TRUE);
     keywords.put("let", VAR);
     keywords.put("while", WHILE);

@@ -15,7 +15,7 @@ public class SqInstance {
         if (fields.containsKey(name.lexeme))
             return fields.get(name.lexeme);
         SqFunction method = cls.findMethod(name.lexeme);
-        if (method != null) return method;
+        if (method != null) return method.bind(this);
 
         throw new RuntimeError(name, "Undefined property '" + name.lexeme + "'.");
     }

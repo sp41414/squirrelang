@@ -14,7 +14,12 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         FUNCTION,
         METHOD
     }
+    private enum ClassType {
+        NONE,
+        CLASS
+    }
     private FunctionType currentFunction = FunctionType.NONE;
+    private ClassType currentClass = ClassType.NONE;
     private int loopDepth = 0;
 
     Resolver(Interpreter interpreter) {
@@ -63,14 +68,23 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
     @Override
     public Void visitClassStmt(Stmt.Class stmt) {
+        ClassType enclosingClass = currentClass;
+        currentClass = ClassType.CLASS;
+
         declare(stmt.name);
         define(stmt.name);
+
+        beginScope();
+        scopes.peek().put("self", true);
 
         for (Stmt.Function method : stmt.methods) {
            FunctionType declaration = FunctionType.METHOD;
            resolveFunction(method, declaration);
         }
 
+        endScope();
+
+        currentClass = enclosingClass;
         return null;
     }
 
@@ -192,6 +206,17 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     public Void visitSetExpr(Expr.Set expr) {
         resolve(expr.object);
         resolve(expr.value);
+        return null;
+    }
+
+    @Override
+    public Void visitSelfExpr(Expr.Self expr) {
+        if (currentClass == ClassType.NONE) {
+            Squirrelang.error(expr.keyword, "Cannot use 'self' outside of a class.");
+            return null;
+        }
+
+        resolveLocal(expr, expr.keyword);
         return null;
     }
 

@@ -483,6 +483,9 @@ public class Parser {
         if (match(IDENTIFIER)) {
             return new Expr.Variable(previous());
         }
+        if (match(SELF)) {
+            return new Expr.Self(previous());
+        }
         if (match(LEFT_PAREN)) {
             Expr expr = expression();
             consume(RIGHT_PAREN, "Expect ')' after expression.");

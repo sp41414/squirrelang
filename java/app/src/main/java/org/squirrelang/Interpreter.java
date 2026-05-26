@@ -340,6 +340,9 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
 
     @Override
+    public Object visitSelfExpr(Expr.Self expr) { return lookupVariable(expr.keyword, expr); }
+
+    @Override
     public Object visitLambdaExpr(Expr.Lambda expr) {
         return new SqFunction(expr.params, expr.body, environment);
     }

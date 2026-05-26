@@ -24,7 +24,8 @@ public class GenerateAst {
                 "Ternary  : Expr condition, Expr thenBranch, Expr elseBranch",
                 "Variable : Token name",
                 "Get      : Expr object, Token name",
-                "Set      : Expr object, Token name, Expr value"));
+                "Set      : Expr object, Token name, Expr value",
+                "Self     : Token keyword"));
         defineAst(outputDir, "Stmt", Arrays.asList(
                 "Block      : List<Stmt> statements",
                 "Expression : Expr expression",

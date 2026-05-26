@@ -38,6 +38,12 @@ public class SqFunction implements SqCallable {
         return null;
     }
 
+    SqFunction bind(SqInstance instance) {
+        Environment environment = new Environment(closure);
+        environment.define("self", instance);
+        return new SqFunction(declaration, environment);
+    }
+
     @Override
     public String toString() {
         if (declaration.name == null) return "<fn>";
