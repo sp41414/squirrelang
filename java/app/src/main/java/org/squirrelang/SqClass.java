@@ -18,12 +18,21 @@ public class SqClass implements SqCallable {
 
     @Override
     public Object call(Interpreter interpreter, List<Object> args) {
-        return new SqInstance(this);
+        SqInstance instance = new SqInstance(this);
+        SqFunction initializer = findMethod("init");
+
+        if (initializer != null) {
+            initializer.bind(instance).call(interpreter, args);
+        }
+
+        return instance;
     }
 
     @Override
     public int arity() {
-        return 0;
+        SqFunction initializer = findMethod("init");
+        if (initializer == null) return 0;
+        return initializer.arity();
     }
 
     @Override

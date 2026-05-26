@@ -133,7 +133,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     @Override
     public Void visitFunctionStmt(Stmt.Function stmt) {
-        SqFunction function = new SqFunction(stmt, environment);
+        SqFunction function = new SqFunction(stmt, environment, false);
         environment.define(stmt.name.lexeme, function);
         return null;
     }
@@ -144,7 +144,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
         Map<String, SqFunction> methods = new HashMap<>();
         for (Stmt.Function method : stmt.methods) {
-            SqFunction function = new SqFunction(method, environment);
+            SqFunction function = new SqFunction(method, environment, stmt.name.lexeme.equals("init"));
             methods.put(method.name.lexeme, function);
         }
         SqClass cls = new SqClass(stmt.name.lexeme, methods);
