@@ -79,10 +79,16 @@ public class Parser {
         }
 
         Token name = consume(IDENTIFIER, "Expect " + kind.name() + " name.");
-        consume(LEFT_PAREN, "Expect '(' after " + kind.name() + " name.");
 
-        List<Token> parameters = getParams();
-        consume(RIGHT_PAREN, "Expect ')' after " + kind.name() + " name.");
+        List<Token> parameters = new ArrayList<>();
+        if (match(LEFT_PAREN)) {
+            parameters = getParams();
+            consume(RIGHT_PAREN, "Expect ')' after " + kind.name() + " name.");
+        } else if (kind == FunctionType.method) {
+            modifiers |= Modifiers.GETTER;
+        } else {
+            throw error(peek(), "Expect '(' after function name.");
+        }
 
         consume(LEFT_BRACE, "Expect '{' before body.");
         List<Stmt> body = block();

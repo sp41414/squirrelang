@@ -22,6 +22,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     private FunctionType currentFunction = FunctionType.NONE;
     private ClassType currentClass = ClassType.NONE;
     private boolean isInStaticMethod = false;
+    private boolean isInGetterMethod = false;
     private int loopDepth = 0;
 
     Resolver(Interpreter interpreter) {
@@ -209,6 +210,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
     @Override
     public Void visitAssignExpr(Expr.Assign expr) {
+        if (isInGetterMethod) Squirrelang.error(expr.name, "Cannot mutate state inside a getter.");
         resolve(expr.value);
         resolveLocal(expr, expr.name);
         return null;
@@ -222,6 +224,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
     @Override
     public Void visitSetExpr(Expr.Set expr) {
+        if (isInGetterMethod) Squirrelang.error(expr.name, "Cannot mutate state inside a getter.");
         resolve(expr.object);
         resolve(expr.value);
         return null;
@@ -276,9 +279,11 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         FunctionType enclosingFunction = currentFunction;
         int enclosingLoopDepth = loopDepth;
         boolean wasInStaticMethod = isInStaticMethod;
+        boolean wasInGetterMethod = isInGetterMethod;
 
         currentFunction = functionType;
         isInStaticMethod = (function.modifiers & Modifiers.STATIC) != 0;
+        isInGetterMethod = (function.modifiers & Modifiers.GETTER) != 0;
         loopDepth = 0;
 
         beginScope();
@@ -291,6 +296,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         loopDepth = enclosingLoopDepth;
         currentFunction = enclosingFunction;
         isInStaticMethod = wasInStaticMethod;
+        isInGetterMethod = wasInGetterMethod;
     }
 
     private void resolveLambda(Expr.Lambda lambda) {

@@ -345,6 +345,9 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
             if (result instanceof SqFunction method) {
                 checkPrivacy(method, instance.getCls(), expr.name);
+                if ((method.modifiers & Modifiers.GETTER) != 0) {
+                    return method.call(this, null);
+                }
             }
 
             return result;
