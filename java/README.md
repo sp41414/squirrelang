@@ -50,20 +50,20 @@ The compiled jar can be found at `app/build/libs/app.jar`
 ### Types
 This language is dynamically typed, with basic types like:
 1. **Strings**:
-```
+```swift
 "Hello, World"
 "h"
 ```
 > [!NOTE]
 > Escape sequences are not supported. Instead of using `\n` for newlines, use an actual newline at the source.
-> ```
+> ```swift
 > "Actual
 > Newline"
 > ```
 
 2. **Numbers**:
 Numbers are represented internally as Java Doubles.
-```
+```swift
 1
 -6
 2.4
@@ -74,7 +74,7 @@ Numbers are represented internally as Java Doubles.
 
 3. **Booleans**:
 Literal true and false values.
-```
+```swift
 true
 false
 ```
@@ -82,7 +82,7 @@ false
 Represents a null or absent undefined value via `nil`
 5. **Class**:
 Objects representing class definitions.
-```
+```swift
 class Hello {
 }
 // prints "<class Hello>"
@@ -91,7 +91,7 @@ print Hello;
 6. **Instances**:
 Instances of classes holding dynamic fields and methods.
 Created by calling a class with ().
-```
+```swift
 class Hello {
 }
 // prints "<Hello instance>"
@@ -99,7 +99,7 @@ print Hello();
 ```
 7. **Functions**:
 Named functions, anonymous lambdas, and builtin-natives are also first-class types.
-```
+```swift
 fn add(a, b) {
     ret a + b;
 }
@@ -128,7 +128,7 @@ Collection types like Arrays and Hashmaps are not yet supported in this language
 2. `-` Unary minus. Also valid only on numbers.
 3. `!` Logical NOT. Converts the operand to a boolean if it isn't already and negates it based on [truthiness](#truthiness).
 4. `~` Bitwise NOT. Converts the operand to a long integer, applies the NOT operation and returns a double.
-```
+```swift
 // 5
 +5
 
@@ -157,7 +157,7 @@ Collection types like Arrays and Hashmaps are not yet supported in this language
 - `*`: Multiplies two numbers.
 - `/`: Divides two numbers. Throws a runtime error on division by zero.
 
-```
+```swift
 // 15
 10 + 5
 
@@ -187,7 +187,7 @@ Collection types like Arrays and Hashmaps are not yet supported in this language
 - `==`, `!=`: Equality checks using Java's `.equals()`.
 - `<`, `>`, `<=`, `>=`: Lexicographical comparison if both operands are strings. Otherwise, non-double operands are converted via their length (strings) or 0.0, then compared as doubles.
 
-```
+```swift
 // true
 5 == 5
 
@@ -213,7 +213,7 @@ nil >= 2.3
 
 `&&` and `||` return one of their operands, not a boolean. `&&` returns the left operand if it is falsy, otherwise returns the right operand. `||` returns the left operand if it is truthy, otherwise returns the right operand. They work naturally in conditions, since the returned value is still evaluated for truthiness. It also makes it so that you can use idioms like `value || "default"` for fallbacks.
 
-```
+```swift
 // false
 false && true
 
@@ -242,7 +242,7 @@ All bitwise operators convert their operands to long integers before operating, 
 - `>>`: Signed right shift.
 - `>>>`: Unsigned right shift.
 
-```
+```swift
 // 1
 5 & 3
 
@@ -267,7 +267,7 @@ All bitwise operators convert their operands to long integers before operating, 
 - `,`: Comma operator. Evaluates the left expression, discards it, and returns the right expression. This isn't available inside function call argument lists, `foo(a,b)` always means two arguments and **NOT** a comma expression.
 - `.`: Property access on instances and classes.
 
-```
+```swift
 // "yes"
 true ? "yes" : "no"
 
@@ -305,7 +305,7 @@ Type `exit` (case-insensitive) to quit. Or press one of the following:
 
 #### Expressions and Statements
 In REPL mode, evaluating an expression alone automatically prints its stringified result to stdout. Declaring variables, functions, and classes work normally.
-```
+```swift
 > let x = 10;
 > x;
 10
@@ -321,7 +321,7 @@ Hello World
 #### Errors
 Errors don't kill the session. After an error the REPL recovers and continues accepting input.
 
-```
+```swift
 > 10 / 0;
 error: Division by zero
   --> <stdin>:1:4
@@ -351,7 +351,7 @@ error: Expect ';' after expression.
 
 ### Comments
 Single-line comments use `//`, Multi-line comments use `/*` to open and `*/` to close.
-```
+```swift
 // This is a single-line comment
 
 /* This is a
@@ -365,7 +365,7 @@ Nested multiline comments make it safe to comment out large code blocks even if 
 
 ### Output
 Use the print statement to output values to standard output followed by a newline.
-```
+```swift
 // Hello, World!
 print "Hello, World!";
 
@@ -381,7 +381,7 @@ Declare variables using the `let` keyword. Variables without an explicit initial
 > [!NOTE]
 > If you try to reference uninitialized variables, it will throw an error. Unused local variables will also throw errors.
 
-```
+```swift
 let x = 10;
 let name = "Squirrel";
 let uninitialized;
@@ -412,7 +412,7 @@ fn unused() {
 Use `if` and `else` for branching logic. Paranthesis around the condition expression are required, just like in C.
 
 You can also use [ternary operators](#other-operators)
-```
+```swift
 let score = 85;
 // B
 if (score >= 90) {
@@ -433,7 +433,7 @@ print score >= 90 ? "A" : "Failure";
 The language supports `while` loops, C-style `for` loops, and the `break` statement to exit loops prematurely.
 
 The language does not support `continue`
-```
+```swift
 let i = 0;
 // 0
 // 1
@@ -461,7 +461,7 @@ for (let j = 0; j < 5; j = j + 1) {
 ### Scopes and Blocks
 Curly braces `{}` define a block statement and introduce a new lexical scope level. Variables declared in an inner scope shadow the variables in outer scopes.
 
-```
+```swift
 let volume = 10;
 
 {
@@ -479,7 +479,7 @@ You cannot declare a variable with the same name twice within the exact same loc
 > [!TIP] Closures
 >
 > Functions capture (or close over) the variables available in their surrounding lexical scope at the time they are defined. This environment stays alive with the function even after the outer scope finishes executing.
-> ```
+> ```swift
 >fn makeCounter() {
 >    let count = 0
 >    fn counter() {
@@ -505,7 +505,7 @@ Functions are first-class. They can be passed as arguments, returned from other 
 
 Lambdas are anonymous functions defined inline as expressions.
 
-```
+```swift
 fn makeAdder(x) {
     fn adder(y) {
         ret x + y;
@@ -536,7 +536,7 @@ The special `init` method is the constructor, which automatically returns `self`
 
 `self` references the current instance object. It allows methods to read or update fields on that specific object. You cannot use `self` outside a class or inside a static method.
 
-```
+```swift
 class Person {
     init(name) {
         self.name = name;
@@ -563,7 +563,7 @@ Single inheritance uses a colon (`:`). A subclass inherits all methods from its 
 
 `base` lets a subclass call an overridden method from its parent class using `base.methodName()`. You cannot use `base` outside a class, inside a static method, or if the class doesn't have a parent class.
 
-```
+```swift
 class Animal {
     makeSound() {
         print "Animal sounds";
@@ -592,7 +592,7 @@ If multiple methods with the same name are defined in every mixin, the last mixi
 You can combine single inheritance with mixins.
 If a mixin method has the same name as a method from the inherited base class, the mixin method wins.
 
-```
+```swift
 class Logger {
     log() {
         print "Logging from Logger";
@@ -645,7 +645,7 @@ Note that calling `ClassName.method()` from toplevel code will fail the privacy 
 
 You can go a step further and use `static private method {}` using all three modifiers together.
 
-```
+```swift
 class MathUtils {
     static square(x) {
         ret x * x;
