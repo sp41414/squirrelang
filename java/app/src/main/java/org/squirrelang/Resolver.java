@@ -94,6 +94,12 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
             scopes.peek().put("base", true);
         }
 
+        for (Expr.Variable mixin : stmt.mixins) {
+            if (mixin.name.lexeme.equals(stmt.name.lexeme))
+                Squirrelang.error(mixin.name, "A class can't have a mixin of itself.\n       Hint: get some sleep");
+            resolve(mixin);
+        }
+
         beginScope();
         scopes.peek().put("self", true);
 

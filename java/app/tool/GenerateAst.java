@@ -34,7 +34,7 @@ public class GenerateAst {
                 "Return     : Token keyword, Expr value",
                 "Var        : Token name, Expr initializer",
                 "Function   : int modifiers, Token name, List<Token> params, List<Stmt> body",
-                "Class      : Token name, Expr.Variable base, List<Stmt.Function> methods",
+                "Class      : Token name, Expr.Variable base, List<Expr.Variable> mixins, List<Stmt.Function> methods",
                 "If         : Expr condition, Stmt thenBranch, Stmt elseBranch",
                 "While      : Expr condition, Stmt body",
                 "Break      : Token token"

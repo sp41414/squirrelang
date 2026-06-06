@@ -149,6 +149,14 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
             }
         }
 
+        List<SqClass> mixins = new ArrayList<>();
+        for (Expr.Variable mixinVar : stmt.mixins) {
+            Object mixin = evaluate(mixinVar);
+            if (!(mixin instanceof SqClass))
+                throw new RuntimeError(mixinVar.name, "Mixin must be a class.");
+            mixins.add((SqClass)mixin);
+        }
+
         environment.define(stmt.name.lexeme, null);
 
         if (stmt.base != null) {
@@ -158,6 +166,16 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
         Map<String, SqFunction> methods = new HashMap<>();
         Map<String, SqFunction> staticMethods = new HashMap<>();
+
+        for (SqClass mixin : mixins) {
+            for (Map.Entry<String, SqFunction> entry : mixin.getMethods().entrySet()) {
+                SqFunction method = entry.getValue();
+                if ((method.modifiers & Modifiers.PRIVATE) == 0) {
+                    methods.put(entry.getKey(), method);
+                }
+            }
+        }
+
         for (Stmt.Function method : stmt.methods) {
             SqFunction function = new SqFunction(method, environment, stmt.name.lexeme.equals("init"), method.modifiers);
             if ((method.modifiers & Modifiers.STATIC) != 0)

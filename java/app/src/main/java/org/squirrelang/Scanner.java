@@ -30,6 +30,7 @@ class Scanner {
     keywords.put("print", PRINT);
     keywords.put("ret", RETURN);
     keywords.put("base", BASE);
+    keywords.put("with", WITH);
     keywords.put("static", STATIC);
     keywords.put("private", PRIVATE);
     keywords.put("self", SELF);

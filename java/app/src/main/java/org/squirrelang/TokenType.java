@@ -56,6 +56,7 @@ enum TokenType {
   SELF,
   STATIC,
   PRIVATE,
+  WITH,
   TRUE,
   VAR,
   WHILE,

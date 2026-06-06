@@ -1,5 +1,6 @@
 package org.squirrelang;
 
+import java.sql.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -105,6 +106,14 @@ public class Parser {
             base = new Expr.Variable(previous());
         }
 
+        List<Expr.Variable> mixins = new ArrayList<>();
+        if (match(WITH)) {
+            do {
+                consume(IDENTIFIER, "Expect mixin class name.");
+                mixins.add(new Expr.Variable(previous()));
+            } while (match(COMMA));
+        }
+
         consume(LEFT_BRACE, "Expect '{' before class body.");
 
         List<Stmt.Function> methods = new ArrayList<>();
@@ -113,7 +122,7 @@ public class Parser {
         }
 
         consume(RIGHT_BRACE, "Expect '}' after class body.");
-        return new Stmt.Class(name, base, methods);
+        return new Stmt.Class(name, base, mixins, methods);
     }
 
     private Stmt statement() {

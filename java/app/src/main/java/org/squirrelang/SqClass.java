@@ -16,6 +16,10 @@ public class SqClass implements SqCallable {
         this.staticMethods = staticMethods;
     }
 
+    public Map<String, SqFunction> getMethods() {
+        return methods;
+    }
+
     SqFunction findMethod(String name) {
         if (methods.containsKey(name)) {
             return methods.get(name);
