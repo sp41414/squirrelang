@@ -6,6 +6,7 @@
 
 typedef enum {
   OP_CONSTANT,
+  OP_CONSTANT_LONG,
   OP_RETURN,
 } OpCode;
 
@@ -31,6 +32,7 @@ void freeChunk(Chunk *chunk);
 
 int addConstant(Chunk *chunk, Value value);
 void writeChunk(Chunk *chunk, uint8_t byte, int line, int col);
+void writeConstant(Chunk *chunk, Value value, int line, int col);
 
 int getLine(Chunk *chunk, int idx);
 int getColumn(Chunk *chunk, int idx);
