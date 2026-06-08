@@ -15,6 +15,10 @@ void initVM(void) { resetStack(); }
 void freeVM(void) {}
 
 void push(Value value) {
+  if (vm.stackTop >= &vm.stack[STACK_MAX]) {
+    fprintf(stderr, "Stack overflow\n");
+    exit(1);
+  }
   *vm.stackTop = value;
   vm.stackTop++;
 }
@@ -49,7 +53,7 @@ static InterpretResult run(void) {
       break;
     }
     case OP_NEGATE:
-      push(-pop());
+      *(vm.stackTop - 1) = -*(vm.stackTop - 1);
       break;
     case OP_ADD:
       BINARY_OP(+);
